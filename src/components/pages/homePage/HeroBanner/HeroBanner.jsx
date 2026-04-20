@@ -12,119 +12,117 @@ const Hero = () => {
   const contentRef = useRef(null);
   const bannerRef = useRef(null);
   const heroSectionRef = useRef(null);
-  const bannerWrapperRef = useRef(null);
 
   useLayoutEffect(() => {
-    // Register ScrollTrigger plugin
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline();
-
       const logo = logoRef.current;
 
-      // Get actual size
       const rect = logo.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
-
       const scaleToFill = viewportHeight / rect.height;
+      const targetTop = 40;
+      const targetLeft = 40;
 
-      // Initial state
-      gsap.set(logo, {
-        xPercent: -50,
-        yPercent: -50,
-        left: "50%",
-        top: "50%",
-        scale: scaleToFill,
-      });
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
 
-      // Set initial banner state (normal size)
+      // Hide banner initially
       gsap.set(bannerRef.current, {
+        opacity: 0,
         scale: 1,
         y: 0,
         x: 0,
-        transformOrigin: "left center",
       });
 
-      // LOGO ANIMATION
+      gsap.set(logo, {
+        position: 'fixed',
+        left: centerX,
+        top: centerY,
+        x: -17.5,
+        y: -16,
+        scale: scaleToFill,
+        transformOrigin: "center center",
+      });
+
       tl.to(logo, {
-        scale: scaleToFill * 0.85,
+        scale: scaleToFill * 0.8,
         duration: 1,
-        ease: "power2.out",
+        ease: "power2.inOut",
       })
-        .to(logo, {
-          rotate: 360,
-          duration: 1.5,
-          ease: "power2.inOut",
-        })
-        .to(logo, {
-          left: "40px",
-          top: "40px",
-          xPercent: 0,
-          yPercent: 0,
-          scale: 1,
-          duration: 1.2,
-          ease: "expo.inOut",
-        })
+      .to(logo, {
+        rotate: 360,
+        duration: 1.8,
+        ease: "power1.inOut",
+      })
+      .to(logo, {
+        scale: scaleToFill * 0.65,
+        duration: 0.8,
+        ease: "sine.inOut",
+      })
+      .to(logo, {
+        left: targetLeft + 17.5,
+        top: targetTop + 16,
+        scale: 1,
+        duration: 1.2,
+        ease: "power3.inOut",
+        onUpdate: function() {
+          gsap.set(logo, {
+            x: -17.5,
+            y: -16,
+          });
+        },
+      })
+      .to([navRef.current, contentRef.current], {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        stagger: 0.15,
+        ease: "power2.out",
+      }, "-=0.5")
+      // Show banner after logo animation completes
+      .to(bannerRef.current, {
+        opacity: 1,
+        duration: 0.5,
+        ease: "power2.out",
+      }, "-=0.3");
 
-        // SHOW CONTENT
-        .to([navRef.current, contentRef.current], {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-          stagger: 0.2,
-          ease: "power3.out",
-        }, "-=0.5");
-
-      // ========== SCROLL TRIGGER: BANNER GETS MUCH SMALLER, MOVES RIGHT & STICKS AT TOP ==========
-      // Remove any existing ScrollTriggers
+      // Banner animation - stays fixed the whole time
       ScrollTrigger.getAll().forEach(st => st.kill());
 
-      // Create the scroll animation - starts immediately, faster, much smaller, moves right
       ScrollTrigger.create({
         trigger: heroSectionRef.current,
         start: "top 10%",
-        end: "+=100", // Shorter distance for faster animation
-        scrub: 0.8, // Less scrub for more responsive/snappy feel while still smooth
-        markers: true,
-        animation: gsap.fromTo(bannerRef.current,
-          {
-            scale: 1,
-            y: 0,
-            x: 0,
-            opacity: 1,
-          },
-          {
-            scale: 0.095, // Extremely small (4.5% of original) - becomes like a small badge/icon
-            y: -120, // Move up to navbar level
-            x: 50, // Move right as it shrinks
-            opacity: 1, // Keep visible, don't fade out
-            duration: 0.8,
-            ease: "power2.out", // Faster easing for snappier feel
-          }
-        ),
+        end: "+=100",
+        scrub: 0.8,
+        markers: false,
         onUpdate: (self) => {
-          // When scroll is complete (banner is fully shrunk), make it fixed at top like logo and navbar
-          if (self.progress === 1) {
-            gsap.set(bannerWrapperRef.current, {
-              position: 'fixed',
-              top: '20px',
-              right: '40px', // Position on the right side like navbar elements
-              left: 'auto',
-              x: 0,
-              zIndex: 100,
-            });
-          } else if (self.progress < 0.99) {
-            // Reset positioning when scrolling back up
-            gsap.set(bannerWrapperRef.current, {
-              position: 'absolute',
-              top: 'auto',
-              left: '0',
-              right: 'auto',
-              x: 0,
-              zIndex: 10,
-            });
-          }
+          const progress = self.progress;
+          const scale = 1 - (progress * 0.905); // 1 to 0.095
+          const y = -240 * progress; // Move up as it scales
+          const x = 90 * progress; // Move right as it scales
+          
+          gsap.set(bannerRef.current, {
+            scale: scale,
+            y: y,
+            x: x,
+            opacity: 1,
+          });
+        },
+        onComplete: () => {
+          gsap.set(bannerRef.current, {
+            position: 'fixed',
+            top: '20px',
+            right: '40px',
+            left: 'auto',
+            scale: 0.095,
+            y: -120,
+            x: 50,
+            opacity: 1,
+            zIndex: 100,
+          });
         }
       });
 
@@ -134,30 +132,33 @@ const Hero = () => {
   }, []);
 
   return (
-    <div ref={container} className="min-h-screen w-full bg-[#1A1A1A] text-white  overflow-hidden flex flex-col relative">
+    <div ref={container} className="min-h-screen w-full bg-[#1A1A1A] text-white overflow-hidden flex flex-col relative">
 
-      {/* --- ANIMATING LOGO --- */}
       <div
         ref={logoRef}
-        className="fixed z-[60] w-[35px] h-[32px]"
+        className="fixed z-[60]"
+        style={{ 
+          width: '35px', 
+          height: '32px',
+          transformOrigin: 'center center',
+        }}
       >
         <Image
-          src="/images/home/logo/logo.png"
+          src="/images/home/logo/logo-1.png"
           alt="Logo"
           height={1500}
           width={1500}
-          className="object-contain"
+          className="object-contain w-full h-full"
+          priority
         />
       </div>
 
-      {/* --- NAVBAR - ALWAYS STICKY/FIXED, SAME LINE AS LOGO --- */}
       <nav
         ref={navRef}
-        className="opacity-0 fixed top-0 left-0 right-0 flex items-center justify-between px-6 py-6 md:px-10 z-50 w-full"
-        style={{ height: '72px' }} // Match logo positioning (top: 40px + logo height approx 32px)
+        className="opacity-0 fixed top-5 left-0 right-0 flex items-center justify-between px-6 py-6 md:px-10 z-50 w-full"
+        style={{ height: '72px' }}
       >
-        {/* Empty div to balance navbar spacing, logo is now independent but aligned */}
-        <div className="w-[35px] h-[32px]" />
+        <div style={{ width: '35px', height: '32px' }} />
 
         <div className="border-[1px] border-[#f1f1f1]/40 px-10 py-2 bg-[#1A1A1A]">
           <ul className="flex space-x-12 text-[16px] tracking-[0.25em] font-light text-[#FFFFFF]">
@@ -174,11 +175,9 @@ const Hero = () => {
         </div>
       </nav>
 
-      {/* --- MAIN CONTENT --- */}
       <div ref={contentRef} className="opacity-0 flex-grow flex flex-col items-center pt-24">
         <main ref={heroSectionRef} className="relative w-full flex items-start justify-center px-6 md:px-10 pt-16">
 
-          {/* Video */}
           <div className="relative w-[82%] h-[650px] bg-[#181818] rounded-lg overflow-hidden">
             <video
               className="w-full h-full object-cover"
@@ -188,43 +187,36 @@ const Hero = () => {
             </video>
           </div>
 
-          {/* BANNER OVERLAY - SHRINKS FAST, MOVES RIGHT, STICKS AT TOP */}
-          <div
-            ref={bannerWrapperRef}
-            className="absolute top-24 left-0 w-full px-6 md:px-10 pointer-events-none z-10"
-          >
-            <div ref={bannerRef}>
-              <Image
-                src="/images/home/hero/banner-text.png"
-                alt="ETHICAL DEN"
-                width={1920}
-                height={400}
-                className="w-full h-auto object-contain select-none"
-                priority
-              />
-            </div>
-          </div>
-
         </main>
 
-        {/* --- BOTTOM CONTENT SECTION --- */}
         <section className="w-full bg-[#1A1A1A] pb-20 pt-10">
-          {/* Container aligned with Navbar/Logo padding (px-6 md:px-10) */}
           <div className="px-6 md:px-10 w-full">
-
             <div className="">
-              {/* Subtitle: Smaller, wide tracking */}
               <p className="text-[10px] md:text-[11px] lg:text-[15px] uppercase tracking-[0.4em] text-[#ffffff] mb-2 font-medium">
                 Cyberattack Simulation
               </p>
-
-              {/* Heading: Using a slight tracking-tight for that premium look */}
               <h2 className="text-2xl md:text-[32px] lg:text-[42px] font-normal text-[#f1f1f1] mb-16 tracking-tight leading-tight">
                 Most advanced cyber-attack simulations: <span className="opacity-80">Ethical Den</span>
               </h2>
             </div>
           </div>
         </section>
+      </div>
+
+      {/* Banner image - appears after logo animation, positioned lower, moves up during scroll */}
+      <div 
+        ref={bannerRef}
+        className="fixed top-48 left-0 w-full px-6 md:px-10 pointer-events-none z-10"
+        style={{ transformOrigin: 'left center', opacity: 0 }}
+      >
+        <Image
+          src="/images/home/hero/banner-text.png"
+          alt="ETHICAL DEN"
+          width={1920}
+          height={400}
+          className="w-full h-auto object-contain select-none"
+          priority
+        />
       </div>
     </div>
   );
