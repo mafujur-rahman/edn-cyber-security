@@ -8,7 +8,7 @@ export default function Home() {
     <div>
       <Hero />
       <IntroSection />
-      <StandardProtection />
+      {/* <StandardProtection /> */}
     </div>
   );
 }

@@ -23,7 +23,7 @@ const StandardProtection = () => {
     ];
 
     return (
-        <div className="bg-[#1A1A1A] text-white min-h-screen font-sans selection:bg-cyan-500/30 overflow-hidden relative py-20 px-6 md:px-10">
+        <div className="bg-[#1A1A1A] text-white min-h-screen  selection:bg-cyan-500/30 overflow-hidden relative pb-20 px-6 md:px-10">
             <div className="w-full relative z-10">
                 {/* Header Section */}
                 <div className="text-center mb-32 md:mb-48 flex flex-col items-center relative">
@@ -31,7 +31,7 @@ const StandardProtection = () => {
                         The Problem
                     </p>
 
-                    <h2 className="text-2xl md:text-3xl lg:text-[42px] font-light tracking-widest text-white uppercase text-center max-w-3xl mx-auto relative z-10">
+                    <h2 className="text-2xl md:text-3xl lg:text-[42px] font-light tracking-widest text-white uppercase text-center max-w-5xl mx-auto relative z-10">
                         {/* The Glow "Strip" behind the text */}
                         <div
                             className="absolute inset-0 -z-10 m-auto w-[90%] h-[60%] blur-[40px] md:blur-[60px] opacity-40"
