@@ -3,7 +3,6 @@ import React, { useLayoutEffect, useRef } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
-import BottomText from './BottomText';
 
 const Hero = () => {
   const container = useRef(null);
@@ -12,11 +11,44 @@ const Hero = () => {
   const contentRef = useRef(null);
   const bannerRef = useRef(null);
   const heroSectionRef = useRef(null);
+  const rotatingBorderRef = useRef(null);
 
   useLayoutEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
+      // Animated rotating gradient border for navbar
+      const path = rotatingBorderRef.current;
+      if (path) {
+        // Get the total length of the path
+        const length = path.getTotalLength();
+
+        // Set up dasharray - using a longer dash (120px) for a more visible rotating line
+        // The dash will move around the entire perimeter
+        gsap.set(path, {
+          strokeDasharray: `120 ${length}`,
+          strokeDashoffset: 0,
+        });
+
+        // Create smooth continuous rotation animation
+        // The line travels clockwise around the border
+        gsap.to(path, {
+          strokeDashoffset: -length,
+          duration: 5,
+          repeat: -1,
+          ease: "none",
+        });
+
+        // Add a subtle pulse to the gradient opacity for extra cinematic feel
+        gsap.to(path, {
+          opacity: 0.6,
+          duration: 2,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        });
+      }
+
       const tl = gsap.timeline();
       const logo = logoRef.current;
 
@@ -52,42 +84,42 @@ const Hero = () => {
         duration: 1,
         ease: "power2.inOut",
       })
-      .to(logo, {
-        rotate: 360,
-        duration: 1.8,
-        ease: "power1.inOut",
-      })
-      .to(logo, {
-        scale: scaleToFill * 0.65,
-        duration: 0.8,
-        ease: "sine.inOut",
-      })
-      .to(logo, {
-        left: targetLeft + 17.5,
-        top: targetTop + 16,
-        scale: 1,
-        duration: 1.2,
-        ease: "power3.inOut",
-        onUpdate: function() {
-          gsap.set(logo, {
-            x: -17.5,
-            y: -16,
-          });
-        },
-      })
-      .to([navRef.current, contentRef.current], {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: "power2.out",
-      }, "-=0.5")
-      // Show banner after logo animation completes
-      .to(bannerRef.current, {
-        opacity: 1,
-        duration: 0.5,
-        ease: "power2.out",
-      }, "-=0.3");
+        .to(logo, {
+          rotate: 360,
+          duration: 1.8,
+          ease: "power1.inOut",
+        })
+        .to(logo, {
+          scale: scaleToFill * 0.65,
+          duration: 0.8,
+          ease: "sine.inOut",
+        })
+        .to(logo, {
+          left: targetLeft + 17.5,
+          top: targetTop + 16,
+          scale: 1,
+          duration: 1.2,
+          ease: "power3.inOut",
+          onUpdate: function () {
+            gsap.set(logo, {
+              x: -17.5,
+              y: -16,
+            });
+          },
+        })
+        .to([navRef.current, contentRef.current], {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.15,
+          ease: "power2.out",
+        }, "-=0.5")
+        // Show banner after logo animation completes
+        .to(bannerRef.current, {
+          opacity: 1,
+          duration: 0.5,
+          ease: "power2.out",
+        }, "-=0.3");
 
       // Banner animation - stays fixed the whole time
       ScrollTrigger.getAll().forEach(st => st.kill());
@@ -103,7 +135,7 @@ const Hero = () => {
           const scale = 1 - (progress * 0.905); // 1 to 0.095
           const y = -240 * progress; // Move up as it scales
           const x = 90 * progress; // Move right as it scales
-          
+
           gsap.set(bannerRef.current, {
             scale: scale,
             y: y,
@@ -137,8 +169,8 @@ const Hero = () => {
       <div
         ref={logoRef}
         className="fixed z-[60]"
-        style={{ 
-          width: '35px', 
+        style={{
+          width: '35px',
           height: '32px',
           transformOrigin: 'center center',
         }}
@@ -160,18 +192,74 @@ const Hero = () => {
       >
         <div style={{ width: '35px', height: '32px' }} />
 
-        <div className="border-[1px] border-[#f1f1f1]/40 px-10 py-2 bg-[#1A1A1A]">
-          <ul className="flex space-x-12 text-[16px] tracking-[0.25em] font-light text-[#FFFFFF]">
-            <li className="cursor-pointer hover:text-gray-300 transition">home</li>
-            <li className="cursor-pointer hover:text-gray-300 transition">services</li>
-            <li className="cursor-pointer hover:text-gray-300 transition">about</li>
-            <li className="cursor-pointer hover:text-gray-300 transition">contact</li>
+        {/* Navigation Container with Base Border + Rotating Gradient Line */}
+        <div className="relative px-10 py-3.5 bg-[#1A1A1A] ">
+          {/* Base static border - #f1f1f1 with 40% opacity */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{ overflow: 'visible' }}
+          >
+            <rect
+              x="2"
+              y="2"
+              width="calc(100% - 2px)"
+              height="calc(100% - 2px)"
+              fill="none"
+              stroke="#f1f1f1"
+              strokeWidth="1.5"
+              strokeOpacity="0.3"
+              vectorEffect="non-scaling-stroke"
+
+            />
+          </svg>
+
+          {/* Rotating gradient line on top */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{ overflow: 'visible' }}
+          >
+            <defs>
+              <linearGradient id="rotatingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#09E5E5" stopOpacity="1" />
+                <stop offset="40%" stopColor="#A8FF57" stopOpacity="1" />
+                <stop offset="60%" stopColor="#09E5E5" stopOpacity="1" />
+                <stop offset="100%" stopColor="#A8FF57" stopOpacity="1" />
+              </linearGradient>
+              {/* Glow/blur layer */}
+              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            {/* Thick rotating gradient line with blur effect */}
+            <rect
+              ref={rotatingBorderRef}
+              x="2"
+              y="2"
+              width="calc(100% - 4px)"
+              height="calc(100% - 4px)"
+              fill="none"
+              stroke="url(#rotatingGradient)"
+              strokeWidth="3"
+              vectorEffect="non-scaling-stroke"
+              style={{ filter: 'url(#glow)' }}
+            />
+          </svg>
+
+          <ul className="flex space-x-16 text-[14px] lg:text-[16px] font-light text-[#FFFFFF] relative z-10">
+            <li className="cursor-pointer hover:text-[#09E5E5] transition-colors duration-300">home</li>
+            <li className="cursor-pointer hover:text-[#09E5E5] transition-colors duration-300">services</li>
+            <li className="cursor-pointer hover:text-[#09E5E5] transition-colors duration-300">about</li>
+            <li className="cursor-pointer hover:text-[#09E5E5] transition-colors duration-300">contact</li>
           </ul>
         </div>
 
-        <div className="flex flex-col space-y-1.5 cursor-pointer">
-          <div className="w-8 h-[2px] bg-white"></div>
-          <div className="w-8 h-[2px] bg-white"></div>
+        <div className="flex flex-col space-y-1.5 cursor-pointer group">
+          <div className="w-8 h-[1px] bg-white group-hover:bg-[#09E5E5] transition-colors duration-300"></div>
+          <div className="w-8 h-[1px] bg-white group-hover:bg-[#A8FF57] transition-colors duration-300"></div>
         </div>
       </nav>
 
@@ -183,7 +271,7 @@ const Hero = () => {
               className="w-full h-full object-cover"
               autoPlay loop muted playsInline
             >
-              <source src="/images/home/hero/banner.mp4" type="video/mp4" />
+              <source src="/images/home/hero/security-banner.mp4" type="video/mp4" />
             </video>
           </div>
 
@@ -204,7 +292,7 @@ const Hero = () => {
       </div>
 
       {/* Banner image - appears after logo animation, positioned lower, moves up during scroll */}
-      <div 
+      <div
         ref={bannerRef}
         className="fixed top-48 left-0 w-full px-6 md:px-10 pointer-events-none z-10"
         style={{ transformOrigin: 'left center', opacity: 0 }}

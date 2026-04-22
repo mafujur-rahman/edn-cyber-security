@@ -298,7 +298,7 @@ const StandardProtection = () => {
     }, []);
 
     return (
-        <div className=" text-white  overflow-hidden relative pb-20 px-6 md:px-10">
+        <div className="bg-[#1A1A1A] text-white overflow-hidden relative py-20 px-6 md:px-10">
             <div ref={contentContainerRef} className="w-full relative z-10">
                 {/* Header Section */}
                 <div ref={headerRef} className="text-center mb-32 md:mb-48 flex flex-col items-center relative">
@@ -553,10 +553,10 @@ export default function IntroSection() {
                     duration: 0.8,
                     ease: "power2.out",
                     onComplete: () => {
-                        // Refresh ScrollTrigger after StandardProtection is visible
+                        // Refresh ScrollTrigger after StandardProtection is visible and positioned
                         setTimeout(() => {
                             ScrollTrigger.refresh();
-                        }, 100);
+                        }, 200);
                     }
                 },
                 "-=0.3"
@@ -567,11 +567,28 @@ export default function IntroSection() {
         return () => ctx.revert();
     }, []);
 
+    // Separate effect to handle ScrollTrigger refresh after the negative margin is applied
+    useEffect(() => {
+        // Force a refresh of ScrollTrigger after the component mounts and when window resizes
+        const handleRefresh = () => {
+            setTimeout(() => {
+                ScrollTrigger.refresh();
+            }, 100);
+        };
+
+        handleRefresh();
+        window.addEventListener('resize', handleRefresh);
+        
+        return () => {
+            window.removeEventListener('resize', handleRefresh);
+        };
+    }, []);
+
     return (
-        <>
-            <main ref={containerRef} className="">
+        <div className="bg-[#1A1A1A] -mt-20">
+            <main ref={containerRef} className="min-h-screen">
                 {/* --- Animation Wrapper --- */}
-                <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden px-6">
+                <section className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden px-6">
 
                     {/* Top Gradient */}
                     <div
@@ -591,7 +608,7 @@ export default function IntroSection() {
                         style={{ opacity: 0 }}
                     >
                         <div className="flex items-center justify-center">
-                            <div className="flex flex-col md:flex-row w-full ">
+                            <div className="flex flex-col md:flex-row w-full">
                                 <div className="w-full md:w-1/4 mb-4 md:mb-0">
                                     <span className="text-[10px] md:text-[11px] lg:text-[15px] text-[#ffffff] uppercase tracking-[0.4em] font-medium">
                                         Introduction
@@ -627,24 +644,13 @@ export default function IntroSection() {
                 </section>
             </main>
 
-            {/* Standard Protection Section - full width preserved */}
-            <div ref={standardProtectionRef} className="w-full relative" style={{ top: '-70vh' }}>
+            {/* Standard Protection Section - keep -70vh but add padding bottom to prevent empty space */}
+            <div ref={standardProtectionRef} className="w-full relative -mt-[70vh]">
                 <StandardProtection />
             </div>
-
-            <style jsx>{`
-                @keyframes pulse {
-                    0%, 100% {
-                        opacity: 0.3;
-                    }
-                    50% {
-                        opacity: 1;
-                    }
-                }
-                .animate-pulse {
-                    animation: pulse 1s ease-in-out infinite;
-                }
-            `}</style>
-        </>
+            
+            {/* Add a spacer div to ensure there's no empty space at the bottom */}
+            <div className="h-0"></div>
+        </div>
     );
 }
