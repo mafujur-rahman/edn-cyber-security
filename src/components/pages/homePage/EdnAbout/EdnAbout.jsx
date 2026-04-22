@@ -349,8 +349,8 @@ const EdnAbout = () => {
             <Image
               src="/images/home/solution/logo-text.png"
               alt="ETHICAL DEN"
-              width={1100}
-              height={150}
+              width={1300}
+              height={250}
               className="w-auto h-auto max-w-full mb-4"
               style={{ objectFit: "contain" }}
               priority
@@ -437,7 +437,7 @@ const EdnAbout = () => {
             <div className="md:col-span-4 flex flex-col gap-[20vh] py-[10vh]">
               {techSpecs.map((tech, idx) => (
                 <div key={idx} className="min-h-[120px] flex items-center">
-                  <h3 className="text-xl md:text-2xl lg:text-[32px] tracking-tight text-white leading-tight">
+                  <h3 className="text-xl md:text-2xl lg:text-[42px] tracking-tight text-white leading-tight">
                     {tech.title}
                   </h3>
                 </div>
@@ -457,7 +457,7 @@ const EdnAbout = () => {
                     playsInline
                     poster="/images/home/technology/video-poster.jpg"
                   >
-                    <source src="/images/home/solution/security-video.mp4" />
+                    <source src="/images/home/solution/security-video2.mp4" />
                     Your browser does not support the video tag.
                   </video>
                 </div>
@@ -468,7 +468,7 @@ const EdnAbout = () => {
             <div className="md:col-span-4 flex flex-col gap-[20vh] py-[10vh]">
               {techSpecs.map((tech, idx) => (
                 <div key={idx} className="min-h-[120px] flex items-center">
-                  <p className="text-sm md:text-base lg:text-[16px] leading-relaxed text-white/70 max-w-sm">
+                  <p className="text-sm md:text-base lg:text-[24px] leading-relaxed text-white/70 max-w-xl">
                     {tech.description}
                   </p>
                 </div>
