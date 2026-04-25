@@ -585,7 +585,7 @@ export default function IntroSection() {
     }, []);
 
     return (
-        <div className="bg-[#1A1A1A] -mt-20">
+        <div className="bg-[#1A1A1A]">
             <main ref={containerRef} className="min-h-screen">
                 {/* --- Animation Wrapper --- */}
                 <section className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden px-6">

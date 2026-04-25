@@ -22,19 +22,22 @@ const Hero = () => {
       if (path) {
         // Get the total length of the path
         const length = path.getTotalLength();
-
-        // Set up dasharray - using a longer dash (120px) for a more visible rotating line
-        // The dash will move around the entire perimeter
+        
+        // Fixed dash length (e.g., 80px) - this will stay constant
+        const dashLength = 80;
+        
+        // Set up dasharray with a fixed visible dash length
+        // The visible line will always be the same width (dashLength)
         gsap.set(path, {
-          strokeDasharray: `120 ${length}`,
+          strokeDasharray: `${dashLength} ${length - dashLength}`,
           strokeDashoffset: 0,
         });
 
         // Create smooth continuous rotation animation
-        // The line travels clockwise around the border
+        // The line travels clockwise around the border maintaining constant width
         gsap.to(path, {
           strokeDashoffset: -length,
-          duration: 5,
+          duration: 6,
           repeat: -1,
           ease: "none",
         });
@@ -209,7 +212,6 @@ const Hero = () => {
               strokeWidth="1.5"
               strokeOpacity="0.3"
               vectorEffect="non-scaling-stroke"
-
             />
           </svg>
 

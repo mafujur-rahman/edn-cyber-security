@@ -457,7 +457,7 @@ const EdnAbout = () => {
                     playsInline
                     poster="/images/home/technology/video-poster.jpg"
                   >
-                    <source src="/images/home/solution/security-video2.mp4" />
+                    <source src="/video/video-1.mp4" />
                     Your browser does not support the video tag.
                   </video>
                 </div>
