@@ -22,10 +22,10 @@ const Hero = () => {
       if (path) {
         // Get the total length of the path
         const length = path.getTotalLength();
-        
+
         // Fixed dash length (e.g., 80px) - this will stay constant
         const dashLength = 80;
-        
+
         // Set up dasharray with a fixed visible dash length
         // The visible line will always be the same width (dashLength)
         gsap.set(path, {
@@ -127,40 +127,139 @@ const Hero = () => {
       // Banner animation - stays fixed the whole time
       ScrollTrigger.getAll().forEach(st => st.kill());
 
-      ScrollTrigger.create({
-        trigger: heroSectionRef.current,
-        start: "top 10%",
-        end: "+=100",
-        scrub: 0.8,
-        markers: false,
-        onUpdate: (self) => {
-          const progress = self.progress;
-          const scale = 1 - (progress * 0.905); // 1 to 0.095
-          const y = -240 * progress; // Move up as it scales
-          const x = 90 * progress; // Move right as it scales
+      // Define responsive values function
+      const getResponsiveValues = () => {
+        const width = window.innerWidth;
 
-          gsap.set(bannerRef.current, {
-            scale: scale,
-            y: y,
-            x: x,
-            opacity: 1,
-          });
-        },
-        onComplete: () => {
-          gsap.set(bannerRef.current, {
-            position: 'fixed',
-            top: '20px',
-            right: '40px',
-            left: 'auto',
-            scale: 0.095,
-            y: -120,
-            x: 50,
-            opacity: 1,
-            zIndex: 100,
-          });
+        if (width >= 1536) {
+          return {
+            scaleReduction: 0.905,
+            yDistance: -240,
+            xDistance: 90,
+            finalTop: '20px',
+            finalRight: '40px',
+            finalScale: 0.095,
+            finalY: -120,
+            finalX: 50,
+            startTrigger: "top 10%",
+            endScroll: "+=100"
+          };
+        } else if (width >= 1280) {
+          return {
+            scaleReduction: 0.905,
+            yDistance: -215,
+            xDistance: 80,
+            finalTop: '20px',
+            finalRight: '30px',
+            finalScale: 0.095,
+            finalY: -100,
+            finalX: 45,
+            startTrigger: "top 10%",
+            endScroll: "+=100"
+          };
+        } else if (width >= 1024) {
+          return {
+            scaleReduction: 0.915,
+            yDistance: -160,
+            xDistance: 60,
+            finalTop: '15px',
+            finalRight: '25px',
+            finalScale: 0.085,
+            finalY: -80,
+            finalX: 35,
+            startTrigger: "top 15%",
+            endScroll: "+=80"
+          };
+        } else if (width >= 768) {
+          return {
+            scaleReduction: 0.925,
+            yDistance: -120,
+            xDistance: 40,
+            finalTop: '15px',
+            finalRight: '20px',
+            finalScale: 0.075,
+            finalY: -60,
+            finalX: 25,
+            startTrigger: "top 20%",
+            endScroll: "+=60"
+          };
+        } else {
+          return {
+            scaleReduction: 0.93,
+            yDistance: -80,
+            xDistance: 20,
+            finalTop: '10px',
+            finalRight: '15px',
+            finalScale: 0.07,
+            finalY: -40,
+            finalX: 10,
+            startTrigger: "top 25%",
+            endScroll: "+=50"
+          };
         }
-      });
+      };
 
+      const createBannerScrollTrigger = () => {
+        const values = getResponsiveValues();
+
+        return ScrollTrigger.create({
+          trigger: heroSectionRef.current,
+          start: values.startTrigger,
+          end: values.endScroll,
+          scrub: 0.8,
+          markers: false,
+          onUpdate: (self) => {
+            const progress = self.progress;
+            const scale = 1 - (progress * values.scaleReduction);
+            const y = values.yDistance * progress;
+            const x = values.xDistance * progress;
+
+            gsap.set(bannerRef.current, {
+              scale: scale,
+              y: y,
+              x: x,
+              opacity: 1,
+            });
+          },
+          onComplete: () => {
+            gsap.set(bannerRef.current, {
+              position: 'fixed',
+              top: values.finalTop,
+              right: values.finalRight,
+              left: 'auto',
+              scale: values.finalScale,
+              y: values.finalY,
+              x: values.finalX,
+              opacity: 1,
+              zIndex: 100,
+            });
+          }
+        });
+      };
+
+      let bannerScrollTrigger = createBannerScrollTrigger();
+
+      // Handle window resize
+      let resizeTimeout;
+      const handleResize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          if (bannerScrollTrigger) {
+            bannerScrollTrigger.kill();
+          }
+          bannerScrollTrigger = createBannerScrollTrigger();
+        }, 250);
+      };
+
+      window.addEventListener('resize', handleResize);
+
+      // Store cleanup function
+      return () => {
+        if (bannerScrollTrigger) {
+          bannerScrollTrigger.kill();
+        }
+        window.removeEventListener('resize', handleResize);
+      };
     }, container);
 
     return () => ctx.revert();
