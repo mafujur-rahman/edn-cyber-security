@@ -1,5 +1,5 @@
 "use client";
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
@@ -11,8 +11,15 @@ const Hero = () => {
   const contentRef = useRef(null);
   const heroSectionRef = useRef(null);
   const rotatingBorderRef = useRef(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useLayoutEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isMounted) return;
+    
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
@@ -30,12 +37,13 @@ const Hero = () => {
       // Get navbar height for perfect vertical alignment
       const navbarHeight = navbar ? navbar.offsetHeight : 100;
       const navbarPaddingLeft = 24; // px-6 = 24px
-      const navbarPaddingTop = 0; // Navbar starts at top
+      const navbarPaddingTop = 0;
       
       // Calculate vertical center of navbar
       const navbarCenter = navbarPaddingTop + (navbarHeight / 2);
       
-      // Set initial state - Logo starts centered on screen
+      // CRITICAL: Set initial position with NO scroll offset
+      // This ensures logo starts at 35% on page load, not scrolled
       gsap.set(logoGroup, {
         position: 'fixed',
         left: 0,
@@ -57,36 +65,55 @@ const Hero = () => {
         delay: 0.2,
       });
 
-      // Scroll Animation: Slower and smoother with extended scroll range
+      // Scroll Animation: Logo moves FROM 35% TO navbar position
       gsap.to(logoGroup, {
         scrollTrigger: {
           trigger: container.current,
           start: "top top",
-          end: "45% top", // Extended scroll distance for slower animation
-          scrub: 1.8, // Higher value = slower, more fluid following
+          end: "45% top",
+          scrub: 1.8,
           invalidateOnRefresh: true,
+          // Prevent initial jump by marking start position
+          onUpdate: (self) => {
+            // Ensure logo doesn't jump on first scroll tick
+            if (self.progress === 0) {
+              gsap.set(logoGroup, { clearProps: 'top' });
+            }
+          }
         },
+        // ANIMATE from 35% to navbar position
         top: `${navbarCenter}px`,
         left: `${navbarPaddingLeft}px`,
         width: 'auto',
         yPercent: -50,
         scale: 0.12,
         transformOrigin: "left center",
-        ease: "power1.inOut", // Smooth easing for gentle motion
+        ease: "power1.inOut",
       });
+
+      // Force refresh after mount to prevent initial scroll state
+      setTimeout(() => {
+        ScrollTrigger.refresh();
+        // Ensure logo is at 35% on page load, not at scrolled position
+        window.scrollTo(0, 0);
+      }, 100);
 
     }, container);
 
-    return () => ctx.revert();
-  }, []);
+    return () => {
+      ctx.revert();
+      ScrollTrigger.getAll().forEach(st => st.kill());
+    };
+  }, [isMounted]);
 
   return (
     <div ref={container} className="min-h-screen w-full bg-[#1A1A1A] overflow-hidden relative">
       
-      {/* OVERLAY LOGO UNIT - Transforms into navbar logo on scroll */}
+      {/* OVERLAY LOGO UNIT - Moves from 35% to navbar on scroll */}
       <div
         ref={fullLogoGroupRef}
         className="fixed z-[80] flex items-center px-6 md:px-10 pointer-events-none w-full h-[100px] md:h-[180px] lg:h-[150px] 2xl:h-[200px]"
+        style={{ visibility: isMounted ? 'visible' : 'hidden' }}
       >
         <div className="flex-shrink-0 mr-4 md:mr-8 h-full aspect-square">
           <Image

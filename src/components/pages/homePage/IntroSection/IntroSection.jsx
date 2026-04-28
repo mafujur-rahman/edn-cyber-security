@@ -32,16 +32,16 @@ const StandardProtection = () => {
 
     const circleRef = useRef(null);
     const lineRef = useRef(null);
+    const verticalLineContainerRef = useRef(null);
     const headerRef = useRef(null);
     const ctaRef = useRef(null);
-    const verticalLineContainerRef = useRef(null);
     const contentContainerRef = useRef(null);
     const exactGradientBloomRef = useRef(null);
-    
+
     const cardRefs = useRef([]);
     const cardTopBorderRefs = useRef([]);
     const cardBottomBorderRefs = useRef([]);
-    const cardBgGlowRefs = useRef([]);
+    const cardSpotlightRefs = useRef([]);
     const cardContentRefs = useRef([]);
 
     useEffect(() => {
@@ -54,6 +54,7 @@ const StandardProtection = () => {
 
             const circle = circleRef.current;
             const line = lineRef.current;
+            const verticalLineContainer = verticalLineContainerRef.current;
             const lineHeight = line.offsetHeight;
             const circleHeight = circle.offsetHeight;
             const maxTravelDistance = lineHeight - circleHeight - 10;
@@ -64,21 +65,24 @@ const StandardProtection = () => {
                 const rect = card.getBoundingClientRect();
                 const containerRect = contentContainerRef.current?.getBoundingClientRect();
                 const headerRect = headerRef.current?.getBoundingClientRect();
-                
+
                 let relativeTop = rect.top - (containerRect?.top || 0);
                 let relativeBottom = rect.bottom - (containerRect?.top || 0);
                 if (headerRect) {
                     relativeTop = rect.top - headerRect.bottom - 20;
                     relativeBottom = rect.bottom - headerRect.bottom - 20;
                 }
-                
+
                 return {
                     element: card,
                     topY: relativeTop,
                     bottomY: relativeBottom,
+                    height: rect.height,
+                    width: rect.width,
+                    left: rect.left,
                     topBorderRef: cardTopBorderRefs.current[idx],
                     bottomBorderRef: cardBottomBorderRefs.current[idx],
-                    bgGlowRef: cardBgGlowRefs.current[idx],
+                    spotlightRef: cardSpotlightRefs.current[idx],
                     contentRef: cardContentRefs.current[idx],
                     index: idx
                 };
@@ -87,8 +91,8 @@ const StandardProtection = () => {
             cardPositions.sort((a, b) => a.topY - b.topY);
 
             // Set initial state
-            gsap.set(circle, { y: 0, autoAlpha: 0, scale: 0.6, force3D: true });
-            
+            gsap.set(circle, { y: 0, autoAlpha: 1, scale: 0.6, force3D: true });
+
             // Initialize all elements
             cardTopBorderRefs.current.forEach(border => {
                 if (border) gsap.set(border, { opacity: 0, width: '0%' });
@@ -96,15 +100,14 @@ const StandardProtection = () => {
             cardBottomBorderRefs.current.forEach(border => {
                 if (border) gsap.set(border, { opacity: 0, width: '0%' });
             });
-            cardBgGlowRefs.current.forEach(glow => {
-                if (glow) gsap.set(glow, { opacity: 0, scale: 0.8 });
+            cardSpotlightRefs.current.forEach(spotlight => {
+                if (spotlight) gsap.set(spotlight, { opacity: 0, scale: 0 });
             });
 
             // Track active states
             let activeTopCardIndex = -1;
             let activeBottomCardIndex = -1;
-            let activeBgCardIndex = -1;
-            let currentGlowIntensity = 0;
+            let activeSpotlightCardIndex = -1;
 
             // Create the main scroll animation
             const mainTl = gsap.timeline({
@@ -113,41 +116,37 @@ const StandardProtection = () => {
                     start: "top center",
                     end: () => `+=${maxTravelDistance}`,
                     scrub: 1,
-                    onEnter: () => gsap.to(circle, { autoAlpha: 1, scale: 1, duration: 0.5 }),
-                    onLeaveBack: () => gsap.to(circle, { autoAlpha: 0, scale: 0.6, duration: 0.3 }),
                     onUpdate: (self) => {
                         const progress = self.progress;
                         const currentY = progress * maxTravelDistance;
                         const circleTopY = currentY;
                         const circleBottomY = currentY + circleHeight;
                         const circleCenterY = currentY + (circleHeight / 2);
-                        
+
                         let touchedTopCardIndex = -1;
                         let touchedBottomCardIndex = -1;
-                        let touchedBgCardIndex = -1;
-                        let circlePositionInCard = 0;
+                        let touchedSpotlightCardIndex = -1;
                         let targetCard = null;
-                        
+
                         for (let i = 0; i < cardPositions.length; i++) {
                             const card = cardPositions[i];
-                            
+
                             const distanceToTop = Math.abs(circleTopY - card.topY);
                             const isTouchingTop = distanceToTop < 30;
-                            
+
                             const distanceToBottom = Math.abs(circleBottomY - card.bottomY);
                             const isTouchingBottom = distanceToBottom < 30;
-                            
+
                             const isInsideCard = circleCenterY >= card.topY && circleCenterY <= card.bottomY;
-                            
+
                             if (isTouchingTop) touchedTopCardIndex = card.index;
                             if (isTouchingBottom) touchedBottomCardIndex = card.index;
                             if (isInsideCard) {
-                                touchedBgCardIndex = card.index;
+                                touchedSpotlightCardIndex = card.index;
                                 targetCard = card;
-                                circlePositionInCard = (circleCenterY - card.topY) / (card.bottomY - card.topY);
                             }
                         }
-                        
+
                         // Handle top border
                         if (touchedTopCardIndex !== -1 && touchedTopCardIndex !== activeTopCardIndex) {
                             if (activeTopCardIndex !== -1 && cardTopBorderRefs.current[activeTopCardIndex]) {
@@ -171,7 +170,7 @@ const StandardProtection = () => {
                             }
                             activeTopCardIndex = -1;
                         }
-                        
+
                         // Handle bottom border
                         if (touchedBottomCardIndex !== -1 && touchedBottomCardIndex !== activeBottomCardIndex) {
                             if (activeBottomCardIndex !== -1 && cardBottomBorderRefs.current[activeBottomCardIndex]) {
@@ -195,60 +194,76 @@ const StandardProtection = () => {
                             }
                             activeBottomCardIndex = -1;
                         }
-                        
-                        // Handle cinematic background glow
-                        if (touchedBgCardIndex !== -1 && targetCard) {
-                            if (activeBgCardIndex !== touchedBgCardIndex) {
-                                if (activeBgCardIndex !== -1 && cardBgGlowRefs.current[activeBgCardIndex]) {
-                                    gsap.to(cardBgGlowRefs.current[activeBgCardIndex], {
-                                        opacity: 0, duration: 0.3, ease: "power2.in", overwrite: true
+
+                        // Handle spotlight effect
+                        if (touchedSpotlightCardIndex !== -1 && targetCard && targetCard.spotlightRef) {
+                            if (activeSpotlightCardIndex !== touchedSpotlightCardIndex) {
+                                if (activeSpotlightCardIndex !== -1 && cardSpotlightRefs.current[activeSpotlightCardIndex]) {
+                                    gsap.to(cardSpotlightRefs.current[activeSpotlightCardIndex], {
+                                        opacity: 0,
+                                        duration: 0.3,
+                                        ease: "power2.in",
+                                        overwrite: true
                                     });
                                 }
-                                activeBgCardIndex = touchedBgCardIndex;
-                                if (cardBgGlowRefs.current[activeBgCardIndex]) {
-                                    gsap.killTweensOf(cardBgGlowRefs.current[activeBgCardIndex]);
-                                    gsap.set(cardBgGlowRefs.current[activeBgCardIndex], { opacity: 0, scale: 0.8 });
-                                    gsap.to(cardBgGlowRefs.current[activeBgCardIndex], {
-                                        opacity: 0.7, scale: 1, duration: 0.4, ease: "power2.out", overwrite: true
+                                activeSpotlightCardIndex = touchedSpotlightCardIndex;
+                                if (cardSpotlightRefs.current[activeSpotlightCardIndex]) {
+                                    gsap.set(cardSpotlightRefs.current[activeSpotlightCardIndex], { 
+                                        opacity: 0,
+                                        scale: 0
                                     });
                                 }
                             }
-                            
-                            if (cardBgGlowRefs.current[activeBgCardIndex] && targetCard.contentRef) {
+
+                            if (cardSpotlightRefs.current[activeSpotlightCardIndex]) {
+                                const spotlight = cardSpotlightRefs.current[activeSpotlightCardIndex];
                                 const cardElement = targetCard.element;
                                 const cardRect = cardElement.getBoundingClientRect();
                                 const circleRect = circle.getBoundingClientRect();
                                 
-                                const relativeY = ((circleRect.top + circleRect.height/2) - cardRect.top) / cardRect.height;
-                                const clampedY = Math.max(0, Math.min(1, relativeY));
+                                // Get the exact circle position relative to the card
+                                const circleX = circleRect.left + circleRect.width / 2;
+                                const circleY = circleRect.top + circleRect.height / 2;
                                 
-                                const glowElement = cardBgGlowRefs.current[activeBgCardIndex];
-                                const glowHeight = cardRect.height * 0.4;
-                                const glowTop = (clampedY * cardRect.height) - (glowHeight / 2);
+                                // Calculate relative position within the card
+                                const relativeX = (circleX - cardRect.left) / cardRect.width;
+                                const relativeY = (circleY - cardRect.top) / cardRect.height;
                                 
-                                glowElement.style.top = `${glowTop}px`;
-                                glowElement.style.height = `${glowHeight}px`;
-                                
-                                const intensity = 0.5 + (1 - Math.abs(clampedY - 0.5) * 2) * 0.4;
-                                gsap.to(glowElement, {
-                                    opacity: Math.min(0.85, intensity),
-                                    duration: 0.05,
-                                    overwrite: true
-                                });
-                                
-                                currentGlowIntensity = intensity;
+                                // Only show spotlight if circle is within card bounds
+                                if (relativeX >= 0 && relativeX <= 1 && relativeY >= 0 && relativeY <= 1) {
+                                    // Spotlight size
+                                    const spotlightSize = Math.min(cardRect.width * 0.8, 250);
+                                    const spotlightLeft = (relativeX * cardRect.width) - (spotlightSize / 2);
+                                    const spotlightTop = (relativeY * cardRect.height) - (spotlightSize / 2);
+                                    
+                                    spotlight.style.position = 'absolute';
+                                    spotlight.style.left = `${spotlightLeft}px`;
+                                    spotlight.style.top = `${spotlightTop}px`;
+                                    spotlight.style.width = `${spotlightSize}px`;
+                                    spotlight.style.height = `${spotlightSize}px`;
+                                    spotlight.style.borderRadius = '50%';
+                                    
+                                    const intensity = 0.7;
+                                    
+                                    gsap.to(spotlight, {
+                                        opacity: intensity,
+                                        scale: 1,
+                                        duration: 0.05,
+                                        overwrite: true
+                                    });
+                                }
                             }
-                        } else if (touchedBgCardIndex === -1 && activeBgCardIndex !== -1) {
-                            if (activeBgCardIndex !== -1 && cardBgGlowRefs.current[activeBgCardIndex]) {
-                                gsap.to(cardBgGlowRefs.current[activeBgCardIndex], {
+                        } else if (touchedSpotlightCardIndex === -1 && activeSpotlightCardIndex !== -1) {
+                            if (activeSpotlightCardIndex !== -1 && cardSpotlightRefs.current[activeSpotlightCardIndex]) {
+                                gsap.to(cardSpotlightRefs.current[activeSpotlightCardIndex], {
                                     opacity: 0,
-                                    duration: 0.5,
+                                    scale: 0,
+                                    duration: 0.4,
                                     ease: "power2.out",
                                     overwrite: true
                                 });
                             }
-                            activeBgCardIndex = -1;
-                            currentGlowIntensity = 0;
+                            activeSpotlightCardIndex = -1;
                         }
                     }
                 }
@@ -259,18 +274,7 @@ const StandardProtection = () => {
                 { y: maxTravelDistance, scale: 1.2, ease: "none" }
             );
 
-            // ScrollTrigger for vertical line fade out
-            gsap.to(verticalLineContainerRef.current, {
-                opacity: 0,
-                scrollTrigger: {
-                    trigger: ctaRef.current,
-                    start: "top 80%",
-                    end: "top 20%",
-                    scrub: true,
-                }
-            });
-
-            // ScrollTrigger for gradient bloom fade in
+            // ScrollTrigger for gradient bloom fade in (only for CTA)
             gsap.fromTo(exactGradientBloomRef.current,
                 { opacity: 0 },
                 {
@@ -292,13 +296,13 @@ const StandardProtection = () => {
                 mainTl.kill();
                 ScrollTrigger.getAll().forEach(trigger => trigger.kill());
             };
-        }, 200); // Increased delay to ensure component is mounted and visible
+        }, 200);
 
         return () => clearTimeout(timer);
     }, []);
 
     return (
-        <div className="bg-[#1A1A1A] text-white overflow-hidden relative py-20 px-6 md:px-10">
+        <div className=" text-white overflow-hidden relative py-20 px-6 md:px-10">
             <div ref={contentContainerRef} className="w-full relative z-10">
                 {/* Header Section */}
                 <div ref={headerRef} className="text-center mb-32 md:mb-48 flex flex-col items-center relative">
@@ -309,10 +313,11 @@ const StandardProtection = () => {
                             style={{ background: 'linear-gradient(90deg, #09E5E5, #A8FF57)' }} />
                         HOW DO STANDARD PROTECTION<br className="hidden md:block" /> METHODS FALL SHORT?
 
+                        {/* Vertical line container - always visible but cards have higher z-index */}
                         <div ref={verticalLineContainerRef} className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center"
-                            style={{ top: 'calc(100% + 20px)', zIndex: 15, transition: 'opacity 0.3s' }}>
+                            style={{ top: 'calc(100% + 20px)', zIndex: 5 }}>
                             <div ref={lineRef} style={{ width: '2px', background: 'linear-gradient(180deg, #09E5E5, #A8FF57, #09E5E5)', height: 'calc(100vh + 600px)', borderRadius: '2px', position: 'relative' }}>
-                                <div ref={circleRef} className="absolute" style={{ top: '-16px', left: '50%', transform: 'translateX(-50%)', willChange: 'transform, opacity', zIndex: 25 }}>
+                                <div ref={circleRef} className="absolute" style={{ top: '-16px', left: '50%', transform: 'translateX(-50%)', willChange: 'transform', zIndex: 25 }}>
                                     <div className="rounded-full absolute" style={{ width: '60px', height: '60px', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'linear-gradient(135deg, #09E5E5, #A8FF57)', filter: 'blur(16px)', opacity: 0.8, zIndex: 1 }} />
                                     <div className="rounded-full relative" style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #09E5E5, #A8FF57)', filter: 'blur(4px)', boxShadow: '0 0 30px rgba(9,229,229,0.6)', border: '1px solid rgba(255,255,255,0.2)', zIndex: 3 }} />
                                 </div>
@@ -321,83 +326,78 @@ const StandardProtection = () => {
                     </h2>
                 </div>
 
-                {/* Content Rows */}
-                <div className="space-y-16 md:space-y-24 mb-24 relative">
+                {/* Content Rows - these will cover the line with higher z-index */}
+                <div className="space-y-16 md:space-y-24 mb-24 relative z-10">
                     {items.map((item, idx) => (
                         <div key={item.id} className="relative w-full flex flex-col md:grid md:grid-cols-[150px_1fr_150px] items-center gap-10 md:gap-4">
                             <div className="text-[10px] md:text-[15px] text-white opacity-60">{item.id}</div>
+
                             <div className="relative w-full flex justify-center">
                                 <div className="relative w-full max-w-4xl">
-                                    
-                                    {/* Cinematic Background Glow */}
-                                    <div 
-                                        ref={el => cardBgGlowRefs.current[idx] = el}
-                                        className="absolute pointer-events-none z-0 transition-all duration-100 ease-out"
-                                        style={{
-                                            left: '0',
-                                            width: '100%',
-                                            background: 'radial-gradient(ellipse at center, rgba(9,229,229,0.6) 0%, rgba(168,255,87,0.4) 40%, transparent 70%)',
-                                            filter: 'blur(20px)',
-                                            opacity: 0,
-                                            borderRadius: '50%',
-                                            transform: 'scale(1)',
-                                        }}
-                                    />
-                                    
-                                    {/* Top border glow */}
-                                    <div 
-                                        ref={el => cardTopBorderRefs.current[idx] = el}
-                                        className="absolute -top-[3px] left-0 h-[4px] pointer-events-none z-10"
-                                        style={{
-                                            background: 'linear-gradient(90deg, transparent, #09E5E5, #A8FF57, #09E5E5, transparent)',
-                                            filter: 'blur(6px)',
-                                            opacity: 0,
-                                            width: '0%'
-                                        }}
-                                    />
-                                    <div 
-                                        className="absolute -top-[6px] left-[10%] w-[80%] h-[8px] pointer-events-none z-10"
-                                        style={{
-                                            background: 'radial-gradient(ellipse, rgba(9,229,229,0.8) 0%, rgba(168,255,87,0.6) 50%, transparent 80%)',
-                                            filter: 'blur(8px)',
-                                            opacity: 0,
-                                        }}
-                                    />
-                                    
-                                    {/* Bottom border glow */}
-                                    <div 
-                                        ref={el => cardBottomBorderRefs.current[idx] = el}
-                                        className="absolute -bottom-[3px] left-0 h-[4px] pointer-events-none z-10"
-                                        style={{
-                                            background: 'linear-gradient(90deg, transparent, #09E5E5, #A8FF57, #09E5E5, transparent)',
-                                            filter: 'blur(6px)',
-                                            opacity: 0,
-                                            width: '0%'
-                                        }}
-                                    />
-                                    <div 
-                                        className="absolute -bottom-[6px] left-[10%] w-[80%] h-[8px] pointer-events-none z-10"
-                                        style={{
-                                            background: 'radial-gradient(ellipse, rgba(9,229,229,0.8) 0%, rgba(168,255,87,0.6) 50%, transparent 80%)',
-                                            filter: 'blur(8px)',
-                                            opacity: 0,
-                                        }}
-                                    />
-                                    
-                                    {/* Card Content */}
-                                    <div 
+                                    {/* Card Content - Higher z-index to cover the line */}
+                                    <div
                                         ref={el => {
                                             cardRefs.current[idx] = el;
                                             cardContentRefs.current[idx] = el;
                                         }}
-                                        className="w-full border-[1px] border-[#f1f1f1]/30 py-16 md:py-28 text-center relative z-20 bg-[#1A1A1A] overflow-hidden"
+                                        className="w-full border-[1px] border-white/10 py-16 md:py-28 text-center relative overflow-hidden"
+                                        style={{
+                                            backgroundColor: '#1A1A1A',
+                                            position: 'relative',
+                                            zIndex: 20
+                                        }}
                                     >
-                                        <h3 className="text-lg md:text-xl tracking-[0.2em] font-medium mb-5 uppercase relative z-10">{item.title}</h3>
-                                        <p className="text-sm md:text-[18px] text-white max-w-lg mx-auto font-light leading-relaxed relative z-10">{item.desc}</p>
+                                        {/* Spotlight Effect */}
+                                        <div
+                                            ref={el => cardSpotlightRefs.current[idx] = el}
+                                            className="absolute pointer-events-none z-20"
+                                            style={{
+                                                background: 'radial-gradient(circle, rgba(9,229,229,0.7) 0%, rgba(9,229,229,0.3) 30%, rgba(168,255,87,0.15) 60%, transparent 80%)',
+                                                filter: 'blur(20px)',
+                                                opacity: 0,
+                                                transform: 'scale(0)',
+                                                willChange: 'left, top, opacity',
+                                                mixBlendMode: 'screen'
+                                            }}
+                                        />
+                                        
+                                        {/* Top border glow */}
+                                        <div
+                                            ref={el => cardTopBorderRefs.current[idx] = el}
+                                            className="absolute -top-[2px] left-0 h-[3px] pointer-events-none z-30"
+                                            style={{
+                                                background: 'linear-gradient(90deg, transparent, #09E5E5, #A8FF57, #09E5E5, transparent)',
+                                                filter: 'blur(4px)',
+                                                opacity: 0,
+                                                width: '0%'
+                                            }}
+                                        />
+
+                                        {/* Bottom border glow */}
+                                        <div
+                                            ref={el => cardBottomBorderRefs.current[idx] = el}
+                                            className="absolute -bottom-[2px] left-0 h-[3px] pointer-events-none z-30"
+                                            style={{
+                                                background: 'linear-gradient(90deg, transparent, #09E5E5, #A8FF57, #09E5E5, transparent)',
+                                                filter: 'blur(4px)',
+                                                opacity: 0,
+                                                width: '0%'
+                                            }}
+                                        />
+
+                                        <h3 className="text-lg md:text-xl tracking-[0.2em] font-medium mb-5 uppercase relative z-30">
+                                            {item.title}
+                                        </h3>
+                                        <p className="text-sm md:text-[18px] text-white/80 max-w-lg mx-auto font-light leading-relaxed relative z-30">
+                                            {item.desc}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
-                            <div className="text-[9px] md:text-[15px] uppercase tracking-[0.2em] font-medium opacity-60 text-right">{item.sideLabel}</div>
+
+                            <div className="text-[9px] md:text-[15px] uppercase tracking-[0.2em] font-medium opacity-60 text-right">
+                                {item.sideLabel}
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -405,7 +405,6 @@ const StandardProtection = () => {
                 {/* Bottom CTA Card Area */}
                 <div ref={ctaRef} className="w-full z-20 relative" id="cta-container">
                     <div className="relative w-full border border-[#f1f1f1]/50 bg-[#1A1A1A] overflow-hidden">
-                        
                         {/* Top border glow - always visible on CTA */}
                         <div className="absolute -top-[3px] left-0 w-full h-[4px] pointer-events-none z-10"
                             style={{
@@ -498,19 +497,17 @@ export default function IntroSection() {
                 }
             });
 
-            // 1. Gradient grows from top
+            // 1. Circular gradient grows from top with curved bottom
             mainTl.fromTo(gradientRef.current,
                 {
                     scaleY: 0,
                     opacity: 0,
-                    y: -50
                 },
                 {
                     scaleY: 1,
                     opacity: 1,
-                    y: 0,
-                    duration: 1,
-                    ease: "power2.out"
+                    duration: 1.2,
+                    ease: "power3.out",
                 },
                 0
             );
@@ -553,7 +550,6 @@ export default function IntroSection() {
                     duration: 0.8,
                     ease: "power2.out",
                     onComplete: () => {
-                        // Refresh ScrollTrigger after StandardProtection is visible and positioned
                         setTimeout(() => {
                             ScrollTrigger.refresh();
                         }, 200);
@@ -567,9 +563,7 @@ export default function IntroSection() {
         return () => ctx.revert();
     }, []);
 
-    // Separate effect to handle ScrollTrigger refresh after the negative margin is applied
     useEffect(() => {
-        // Force a refresh of ScrollTrigger after the component mounts and when window resizes
         const handleRefresh = () => {
             setTimeout(() => {
                 ScrollTrigger.refresh();
@@ -578,7 +572,7 @@ export default function IntroSection() {
 
         handleRefresh();
         window.addEventListener('resize', handleRefresh);
-        
+
         return () => {
             window.removeEventListener('resize', handleRefresh);
         };
@@ -587,19 +581,27 @@ export default function IntroSection() {
     return (
         <div className="bg-[#1A1A1A]">
             <main ref={containerRef} className="min-h-screen">
-                {/* --- Animation Wrapper --- */}
                 <section className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden px-6">
 
-                    {/* Top Gradient */}
+                    {/* Circular Gradient - Grows from top with curved bottom */}
                     <div
                         ref={gradientRef}
-                        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[400px] pointer-events-none origin-top"
+                        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1400px] pointer-events-none origin-top"
                         style={{
-                            background: "radial-gradient(50% 50% at 50% 0%, rgba(9, 229, 229, 0.4) 0%, rgba(168, 255, 87, 0.15) 50%, rgba(0, 0, 0, 0) 100%)",
                             transform: "scaleY(0)",
                             opacity: 0
                         }}
-                    />
+                    >
+                        {/* Main circular gradient - no blur */}
+                        <div 
+                            className="w-full pt-[100%] relative"
+                            style={{
+                                background: "radial-gradient(ellipse 50% 50% at 50% 0%, #09E5E5 0%, #A8FF57 45%, transparent 70%)",
+                            }}
+                        >
+                            
+                        </div>
+                    </div>
 
                     {/* Introduction Text */}
                     <div
@@ -644,12 +646,10 @@ export default function IntroSection() {
                 </section>
             </main>
 
-            {/* Standard Protection Section - keep -70vh but add padding bottom to prevent empty space */}
             <div ref={standardProtectionRef} className="w-full relative -mt-[70vh]">
                 <StandardProtection />
             </div>
-            
-            {/* Add a spacer div to ensure there's no empty space at the bottom */}
+
             <div className="h-0"></div>
         </div>
     );
