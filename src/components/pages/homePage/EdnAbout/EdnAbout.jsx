@@ -14,6 +14,10 @@ const EdnAbout = () => {
   const videoContainerRef = useRef(null);
   const leftContentRef = useRef(null);
   const rightContentRef = useRef(null);
+  
+  // Tech section refs
+  const techContainerRef = useRef(null);
+  const techMaskRef = useRef(null);
 
   useEffect(() => {
     // Set initial hidden state for title and number
@@ -140,6 +144,7 @@ const EdnAbout = () => {
 
     // Content fade-in animations
     sectionRefs.current.forEach((section, idx) => {
+      if (!section) return;
       const content = section.querySelector(".section-content");
       if (content) {
         ScrollTrigger.create({
@@ -204,86 +209,36 @@ const EdnAbout = () => {
       }
     }, 100);
 
-    // Pinned video animation for Section 3
-    if (videoContainerRef.current && sectionRefs.current[2]) {
-      // Make video container sticky
-      gsap.set(videoContainerRef.current, {
-        position: "sticky",
-        top: "120px",
-        width: "100%",
-        borderRadius: "20px",
-        overflow: "hidden",
-        boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.3)",
+    // Modern Tech Section Animations
+    if (techContainerRef.current && techMaskRef.current) {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: techContainerRef.current,
+          start: "top top",
+          end: "+=250%",
+          pin: true,
+          scrub: 1,
+        },
       });
 
-      if (videoRef.current) {
-        videoRef.current.style.opacity = "0";
-        videoRef.current.style.transform = "scale(0.95)";
-      }
+      tl.to(techMaskRef.current, {
+        webkitClipPath: "circle(150% at 50% 50%)",
+        clipPath: "circle(150% at 50% 50%)",
+        ease: "none",
+      });
 
-      ScrollTrigger.create({
-        trigger: sectionRefs.current[2],
-        start: "top bottom",
-        onEnter: () => {
-          if (videoRef.current) {
-            gsap.to(videoRef.current, {
-              opacity: 1,
-              scale: 1,
-              duration: 0.8,
-              ease: "power2.out",
-              onComplete: () => {
-                if (videoRef.current) {
-                  videoRef.current.play().catch((e) => console.log("Video autoplay prevented:", e));
-                }
-              },
-            });
-          }
-        },
-        onLeave: () => {
-          if (videoRef.current) {
-            gsap.to(videoRef.current, {
-              opacity: 0,
-              scale: 0.95,
-              duration: 0.5,
-              ease: "power2.in",
-              onComplete: () => {
-                if (videoRef.current) {
-                  videoRef.current.pause();
-                }
-              },
-            });
-          }
-        },
-        onEnterBack: () => {
-          if (videoRef.current) {
-            gsap.to(videoRef.current, {
-              opacity: 1,
-              scale: 1,
-              duration: 0.6,
-              ease: "power2.out",
-              onComplete: () => {
-                if (videoRef.current) {
-                  videoRef.current.play().catch((e) => console.log("Video autoplay prevented:", e));
-                }
-              },
-            });
-          }
-        },
-        onLeaveBack: () => {
-          if (videoRef.current) {
-            gsap.to(videoRef.current, {
-              opacity: 0,
-              scale: 0.95,
-              duration: 0.4,
-              ease: "power2.in",
-              onComplete: () => {
-                if (videoRef.current) {
-                  videoRef.current.pause();
-                }
-              },
-            });
-          }
-        },
+      // Individual card entrance animations
+      gsap.utils.toArray(".card-wrapper").forEach((card) => {
+        gsap.from(card, {
+          y: 60,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 90%",
+          },
+        });
       });
     }
 
@@ -314,6 +269,31 @@ const EdnAbout = () => {
         "Collaborate with a team of over 10 world-class ethical hackers who think like black-hat attackers and use their skills to protect your organization.",
     },
   ];
+
+  // Modern tech cards data
+  const modernTechSpecs = [
+    { title: "Realistic Threat", sub: "Dynamic Attacks", desc: "Modeling attacks after real-world cybercriminals." },
+    { title: "Safe Testing", sub: "Controlled Env", desc: "No disruption. Zero downtime. Full security." },
+    { title: "AI Hacking", sub: "03 / Tech", desc: "Proprietary tools emulating black-hat strategies." },
+    { title: "Elite Squad", sub: "Ethical Hackers", desc: "10+ hackers thinking like the adversary." },
+  ];
+
+  // Shared Card Component for modern section
+  const TechCard = ({ spec, inverted = false }) => (
+    <div className={`group relative p-8 md:p-12 border ${inverted ? 'border-black/20' : 'border-white/20'} h-full flex flex-col justify-center text-center transition-all duration-500`}>
+      <h3 className={`text-3xl md:text-5xl font-bold uppercase tracking-tight mb-2 ${inverted ? 'text-black' : 'text-white'}`}>
+        {spec.title}
+      </h3>
+      <h4 className={`text-2xl md:text-4xl font-bold uppercase tracking-tight mb-6 ${inverted ? 'text-black' : 'text-white'}`}>
+        {spec.sub}
+      </h4>
+      <p className={`text-sm uppercase tracking-widest ${inverted ? 'text-black/60' : 'text-white/50'}`}>
+        {spec.desc}
+      </p>
+      <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-[1px] h-4 ${inverted ? 'bg-black' : 'bg-[#A8FF57]'}`} />
+      <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] h-4 ${inverted ? 'bg-black' : 'bg-[#A8FF57]'}`} />
+    </div>
+  );
 
   return (
     <div className="bg-[#1A1A1A] text-white">
@@ -425,58 +405,49 @@ const EdnAbout = () => {
           </div>
         </div>
       </section>
-      {/* Section 3 - Technology with pinned video in middle */}
-      <section
-        ref={(el) => (sectionRefs.current[2] = el)}
-        className="min-h-screen relative px-6 md:px-10 py-20 border-y border-[#000000] bg-[#1A1A1A]"
+
+      {/* Section 3 - Modern Mask Reveal Section */}
+      {/* IMPORTANT: This div is now the third section - added to sectionRefs */}
+      <div 
+        ref={(el) => {
+          sectionRefs.current[2] = el;
+          techContainerRef.current = el;
+        }}
+        className="relative h-screen w-full overflow-hidden bg-[#0D0D0D]"
       >
-        <div className="max-w-[1800px] mx-auto relative">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-
-            {/* Left Column - Titles */}
-            <div className="md:col-span-4 flex flex-col gap-[20vh] py-[10vh]">
-              {techSpecs.map((tech, idx) => (
-                <div key={idx} className="min-h-[120px] flex items-center">
-                  <h3 className="text-xl md:text-2xl lg:text-[42px] tracking-tight text-white leading-tight">
-                    {tech.title}
-                  </h3>
-                </div>
-              ))}
-            </div>
-
-            {/* Middle Column - Pinned Video */}
-            <div className="md:col-span-4 h-full relative">
-              <div className="sticky top-[5vh] w-full">
-                <div className="w-full aspect-square flex items-center justify-center">
-                  <video
-                    ref={videoRef}
-                    className="w-full h-full object-contain relative z-10"
-                    loop
-                    muted
-                    autoPlay
-                    playsInline
-                    poster="/images/home/technology/video-poster.jpg"
-                  >
-                    <source src="/video/video-1.mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
+        
+        {/* Layer 1: Dark Mode (Default State) */}
+        <div className="absolute inset-0 flex items-center justify-center p-6 md:p-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-7xl">
+            {modernTechSpecs.map((spec, i) => (
+              <div key={i} className="card-wrapper h-[300px] md:h-[350px]">
+                <TechCard spec={spec} />
               </div>
-            </div>
-
-            {/* Right Column - Descriptions */}
-            <div className="md:col-span-4 flex flex-col gap-[20vh] py-[10vh]">
-              {techSpecs.map((tech, idx) => (
-                <div key={idx} className="min-h-[120px] flex items-center">
-                  <p className="text-sm md:text-base lg:text-[24px] leading-relaxed text-white/70 max-w-xl">
-                    {tech.description}
-                  </p>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
-      </section>
+
+        {/* Layer 2: Green Mode (Masked Reveal) */}
+        <div 
+          ref={techMaskRef}
+          className="absolute inset-0 bg-[#A8FF57] flex items-center justify-center z-20 pointer-events-none"
+          style={{ clipPath: "circle(0% at 50% 50%)", WebkitClipPath: "circle(0% at 50% 50%)" }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-7xl p-6 md:p-20">
+            {modernTechSpecs.map((spec, i) => (
+              <div key={i} className="h-[300px] md:h-[350px]">
+                <TechCard spec={spec} inverted={true} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Scroll indicator for modern vibe */}
+        <div className="absolute bottom-8 right-8 z-30 flex items-center gap-4">
+          <span className="text-[10px] uppercase tracking-[0.4em] text-white/40">Scroll to Breach</span>
+          <div className="w-12 h-[1px] bg-[#A8FF57]" />
+        </div>
+      </div>
     </div>
   );
 };

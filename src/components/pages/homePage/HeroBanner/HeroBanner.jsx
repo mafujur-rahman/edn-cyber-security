@@ -1,5 +1,5 @@
 "use client";
-import React, { useLayoutEffect, useRef, useState, useEffect } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
@@ -7,10 +7,11 @@ import ScrollTrigger from 'gsap/ScrollTrigger';
 const Hero = () => {
   const container = useRef(null);
   const fullLogoGroupRef = useRef(null);
+  const textImageRef = useRef(null);
   const navRef = useRef(null);
   const contentRef = useRef(null);
-  const heroSectionRef = useRef(null);
   const rotatingBorderRef = useRef(null);
+  const animationOverlayRef = useRef(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useLayoutEffect(() => {
@@ -31,73 +32,133 @@ const Hero = () => {
         gsap.to(path, { strokeDashoffset: -length, duration: 15, repeat: -1, ease: "none" });
       }
 
-      const logoGroup = fullLogoGroupRef.current;
+      const originalLogoUnit = fullLogoGroupRef.current;
+      const textImage = textImageRef.current;
       const navbar = navRef.current;
+      const overlay = animationOverlayRef.current;
       
-      // Get navbar height for perfect vertical alignment
-      const navbarHeight = navbar ? navbar.offsetHeight : 100;
-      const navbarPaddingLeft = 24; // px-6 = 24px
-      const navbarPaddingTop = 0;
-      
-      // Calculate vertical center of navbar
-      const navbarCenter = navbarPaddingTop + (navbarHeight / 2);
-      
-      // CRITICAL: Set initial position with NO scroll offset
-      // This ensures logo starts at 35% on page load, not scrolled
-      gsap.set(logoGroup, {
+      // Original logo unit - set to final position but hidden initially
+      gsap.set(originalLogoUnit, { 
+        opacity: 0,
+        visibility: 'hidden',
         position: 'fixed',
         left: 0,
-        width: '100%',
         top: '35%',
         yPercent: -50,
-        opacity: 1,
+        width: '100%',
         zIndex: 80,
       });
-
-      // Fade in nav and content
-      gsap.set([navRef.current, contentRef.current], {
-        opacity: 0,
+      
+      gsap.set(textImage, { opacity: 0 });
+      gsap.set([navRef.current, contentRef.current], { opacity: 0 });
+      
+      // Create the animated logo inside overlay
+      const animatedLogo = document.createElement('div');
+      animatedLogo.className = 'animated-logo-container';
+      animatedLogo.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+          <img src="/images/home/logo/logo-1.png" alt="Logo" style="width: auto; height: 70%; object-fit: contain;" />
+        </div>
+      `;
+      animatedLogo.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: #1A1A1A;
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
+      overlay.innerHTML = '';
+      overlay.appendChild(animatedLogo);
+      overlay.style.display = 'block';
+      
+      const logoImg = animatedLogo.querySelector('img');
+      
+      // ANIMATION
+      const tl = gsap.timeline({
+        onComplete: () => {
+          // Hide overlay and show original elements
+          overlay.style.display = 'none';
+          
+          // Fade in original logo unit and all content
+          gsap.to(originalLogoUnit, { 
+            opacity: 1, 
+            visibility: 'visible',
+            duration: 0.3,
+          });
+          gsap.to(textImage, { 
+            opacity: 1, 
+            duration: 0.5,
+          });
+          gsap.to(navRef.current, { 
+            opacity: 1, 
+            duration: 0.5,
+          });
+          gsap.to(contentRef.current, { 
+            opacity: 1, 
+            duration: 0.5,
+          });
+          
+          // Setup scroll animation
+          const navbarHeight = navbar ? navbar.offsetHeight : 100;
+          const navbarPaddingLeft = 24;
+          const navbarCenter = navbarHeight / 2;
+          
+          gsap.to(originalLogoUnit, {
+            scrollTrigger: {
+              trigger: container.current,
+              start: "top top",
+              end: "40% top",
+              scrub: 1.5,
+              invalidateOnRefresh: true,
+            },
+            top: `${navbarCenter}px`,
+            left: `${navbarPaddingLeft}px`,
+            width: 'auto',
+            yPercent: -50,
+            scale: 0.12,
+            transformOrigin: "left center",
+            ease: "power1.inOut",
+          });
+          
+          ScrollTrigger.refresh();
+        }
       });
       
-      gsap.to([navRef.current, contentRef.current], {
-        opacity: 1,
+      // 1. Zoom out
+      tl.to(logoImg, {
+        scale: 0.7,
         duration: 0.8,
-        delay: 0.2,
-      });
-
-      // Scroll Animation: Logo moves FROM 35% TO navbar position
-      gsap.to(logoGroup, {
-        scrollTrigger: {
-          trigger: container.current,
-          start: "top top",
-          end: "45% top",
-          scrub: 1.8,
-          invalidateOnRefresh: true,
-          // Prevent initial jump by marking start position
-          onUpdate: (self) => {
-            // Ensure logo doesn't jump on first scroll tick
-            if (self.progress === 0) {
-              gsap.set(logoGroup, { clearProps: 'top' });
-            }
-          }
-        },
-        // ANIMATE from 35% to navbar position
-        top: `${navbarCenter}px`,
-        left: `${navbarPaddingLeft}px`,
-        width: 'auto',
-        yPercent: -50,
-        scale: 0.12,
-        transformOrigin: "left center",
-        ease: "power1.inOut",
-      });
-
-      // Force refresh after mount to prevent initial scroll state
-      setTimeout(() => {
-        ScrollTrigger.refresh();
-        // Ensure logo is at 35% on page load, not at scrolled position
-        window.scrollTo(0, 0);
-      }, 100);
-
+        ease: "power2.inOut",
+      })
+      // 2. Rotate 360
+      .to(logoImg, {
+        rotation: 360,
+        duration: 1.2,
+        ease: "power2.inOut",
+      })
+      // 3. Move to left position
+      .to(animatedLogo, {
+        width: '80px',
+        height: '80px',
+        top: '35%',
+        left: '24px',
+        transform: 'translate(0, -50%)',
+        duration: 1,
+        ease: "expo.inOut",
+      })
+      .to(logoImg, {
+        scale: 1,
+        rotation: 0,
+        height: '100%',
+        duration: 0.8,
+        ease: "expo.inOut",
+      }, "-=0.8");
+      
     }, container);
 
     return () => {
@@ -109,7 +170,10 @@ const Hero = () => {
   return (
     <div ref={container} className="min-h-screen w-full bg-[#1A1A1A] overflow-hidden relative">
       
-      {/* OVERLAY LOGO UNIT - Moves from 35% to navbar on scroll */}
+      {/* Animation Overlay */}
+      <div ref={animationOverlayRef} className="fixed inset-0 z-[200]" />
+      
+      {/* ORIGINAL LOGO UNIT - Already in correct position */}
       <div
         ref={fullLogoGroupRef}
         className="fixed z-[80] flex items-center px-6 md:px-10 pointer-events-none w-full h-[100px] md:h-[180px] lg:h-[150px] 2xl:h-[200px]"
@@ -126,7 +190,7 @@ const Hero = () => {
           />
         </div>
 
-        <div className="flex-grow h-full">
+        <div ref={textImageRef} className="flex-grow h-full">
           <Image
             src="/images/home/hero/banner-text.png"
             alt="ETHICAL DEN"
@@ -166,7 +230,7 @@ const Hero = () => {
 
       {/* Main Content */}
       <div ref={contentRef} className="opacity-0 pt-[20vh]">
-        <main ref={heroSectionRef} className="flex flex-col items-center w-full">
+        <main className="flex flex-col items-center w-full">
           
           {/* VIDEO CONTAINER */}
           <div className="relative w-[65%] h-[50vh] md:h-[70vh] bg-[#111] overflow-hidden ">
