@@ -6,10 +6,9 @@ import ScrollTrigger from 'gsap/ScrollTrigger';
 
 const Hero = () => {
   const container = useRef(null);
-  const logoRef = useRef(null);
+  const fullLogoGroupRef = useRef(null);
   const navRef = useRef(null);
   const contentRef = useRef(null);
-  const bannerRef = useRef(null);
   const heroSectionRef = useRef(null);
   const rotatingBorderRef = useRef(null);
 
@@ -17,395 +16,153 @@ const Hero = () => {
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
-      // Animated rotating gradient border for navbar
+      // Navbar Border Animation
       const path = rotatingBorderRef.current;
       if (path) {
-        // Get the total length of the path
         const length = path.getTotalLength();
-
-        // Fixed dash length (e.g., 80px) - this will stay constant
-        const dashLength = 80;
-
-        // Set up dasharray with a fixed visible dash length
-        // The visible line will always be the same width (dashLength)
-        gsap.set(path, {
-          strokeDasharray: `${dashLength} ${length - dashLength}`,
-          strokeDashoffset: 0,
-        });
-
-        // Create smooth continuous rotation animation
-        // The line travels clockwise around the border maintaining constant width
-        gsap.to(path, {
-          strokeDashoffset: -length,
-          duration: 6,
-          repeat: -1,
-          ease: "none",
-        });
-
-        // Add a subtle pulse to the gradient opacity for extra cinematic feel
-        gsap.to(path, {
-          opacity: 0.6,
-          duration: 2,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
-        });
+        gsap.set(path, { strokeDasharray: `200 ${length - 200}`, strokeDashoffset: 0 });
+        gsap.to(path, { strokeDashoffset: -length, duration: 15, repeat: -1, ease: "none" });
       }
 
-      const tl = gsap.timeline();
-      const logo = logoRef.current;
-
-      const rect = logo.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const scaleToFill = viewportHeight / rect.height;
-      const targetTop = 40;
-      const targetLeft = 40;
-
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-
-      // Hide banner initially
-      gsap.set(bannerRef.current, {
-        opacity: 0,
-        scale: 1,
-        y: 0,
-        x: 0,
-      });
-
-      gsap.set(logo, {
+      const logoGroup = fullLogoGroupRef.current;
+      const navbar = navRef.current;
+      
+      // Get navbar height for perfect vertical alignment
+      const navbarHeight = navbar ? navbar.offsetHeight : 100;
+      const navbarPaddingLeft = 24; // px-6 = 24px
+      const navbarPaddingTop = 0; // Navbar starts at top
+      
+      // Calculate vertical center of navbar
+      const navbarCenter = navbarPaddingTop + (navbarHeight / 2);
+      
+      // Set initial state - Logo starts centered on screen
+      gsap.set(logoGroup, {
         position: 'fixed',
-        left: centerX,
-        top: centerY,
-        x: -17.5,
-        y: -16,
-        scale: scaleToFill,
-        transformOrigin: "center center",
+        left: 0,
+        width: '100%',
+        top: '35%',
+        yPercent: -50,
+        opacity: 1,
+        zIndex: 80,
       });
 
-      tl.to(logo, {
-        scale: scaleToFill * 0.8,
-        duration: 1,
-        ease: "power2.inOut",
-      })
-        .to(logo, {
-          rotate: 360,
-          duration: 1.8,
-          ease: "power1.inOut",
-        })
-        .to(logo, {
-          scale: scaleToFill * 0.65,
-          duration: 0.8,
-          ease: "sine.inOut",
-        })
-        .to(logo, {
-          left: targetLeft + 17.5,
-          top: targetTop + 16,
-          scale: 1,
-          duration: 1.2,
-          ease: "power3.inOut",
-          onUpdate: function () {
-            gsap.set(logo, {
-              x: -17.5,
-              y: -16,
-            });
-          },
-        })
-        .to([navRef.current, contentRef.current], {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          stagger: 0.15,
-          ease: "power2.out",
-        }, "-=0.5")
-        // Show banner after logo animation completes
-        .to(bannerRef.current, {
-          opacity: 1,
-          duration: 0.5,
-          ease: "power2.out",
-        }, "-=0.3");
+      // Fade in nav and content
+      gsap.set([navRef.current, contentRef.current], {
+        opacity: 0,
+      });
+      
+      gsap.to([navRef.current, contentRef.current], {
+        opacity: 1,
+        duration: 0.8,
+        delay: 0.2,
+      });
 
-      // Banner animation - stays fixed the whole time
-      ScrollTrigger.getAll().forEach(st => st.kill());
+      // Scroll Animation: Slower and smoother with extended scroll range
+      gsap.to(logoGroup, {
+        scrollTrigger: {
+          trigger: container.current,
+          start: "top top",
+          end: "45% top", // Extended scroll distance for slower animation
+          scrub: 1.8, // Higher value = slower, more fluid following
+          invalidateOnRefresh: true,
+        },
+        top: `${navbarCenter}px`,
+        left: `${navbarPaddingLeft}px`,
+        width: 'auto',
+        yPercent: -50,
+        scale: 0.12,
+        transformOrigin: "left center",
+        ease: "power1.inOut", // Smooth easing for gentle motion
+      });
 
-      // Define responsive values function
-      const getResponsiveValues = () => {
-        const width = window.innerWidth;
-
-        if (width >= 1536) {
-          return {
-            scaleReduction: 0.905,
-            yDistance: -240,
-            xDistance: 90,
-            finalTop: '20px',
-            finalRight: '40px',
-            finalScale: 0.095,
-            finalY: -120,
-            finalX: 50,
-            startTrigger: "top 10%",
-            endScroll: "+=100"
-          };
-        } else if (width >= 1280) {
-          return {
-            scaleReduction: 0.905,
-            yDistance: -215,
-            xDistance: 80,
-            finalTop: '20px',
-            finalRight: '30px',
-            finalScale: 0.095,
-            finalY: -100,
-            finalX: 45,
-            startTrigger: "top 10%",
-            endScroll: "+=100"
-          };
-        } else if (width >= 1024) {
-          return {
-            scaleReduction: 0.915,
-            yDistance: -160,
-            xDistance: 60,
-            finalTop: '15px',
-            finalRight: '25px',
-            finalScale: 0.085,
-            finalY: -80,
-            finalX: 35,
-            startTrigger: "top 15%",
-            endScroll: "+=80"
-          };
-        } else if (width >= 768) {
-          return {
-            scaleReduction: 0.925,
-            yDistance: -120,
-            xDistance: 40,
-            finalTop: '15px',
-            finalRight: '20px',
-            finalScale: 0.075,
-            finalY: -60,
-            finalX: 25,
-            startTrigger: "top 20%",
-            endScroll: "+=60"
-          };
-        } else {
-          return {
-            scaleReduction: 0.93,
-            yDistance: -80,
-            xDistance: 20,
-            finalTop: '10px',
-            finalRight: '15px',
-            finalScale: 0.07,
-            finalY: -40,
-            finalX: 10,
-            startTrigger: "top 25%",
-            endScroll: "+=50"
-          };
-        }
-      };
-
-      const createBannerScrollTrigger = () => {
-        const values = getResponsiveValues();
-
-        return ScrollTrigger.create({
-          trigger: heroSectionRef.current,
-          start: values.startTrigger,
-          end: values.endScroll,
-          scrub: 0.8,
-          markers: false,
-          onUpdate: (self) => {
-            const progress = self.progress;
-            const scale = 1 - (progress * values.scaleReduction);
-            const y = values.yDistance * progress;
-            const x = values.xDistance * progress;
-
-            gsap.set(bannerRef.current, {
-              scale: scale,
-              y: y,
-              x: x,
-              opacity: 1,
-            });
-          },
-          onComplete: () => {
-            gsap.set(bannerRef.current, {
-              position: 'fixed',
-              top: values.finalTop,
-              right: values.finalRight,
-              left: 'auto',
-              scale: values.finalScale,
-              y: values.finalY,
-              x: values.finalX,
-              opacity: 1,
-              zIndex: 100,
-            });
-          }
-        });
-      };
-
-      let bannerScrollTrigger = createBannerScrollTrigger();
-
-      // Handle window resize
-      let resizeTimeout;
-      const handleResize = () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-          if (bannerScrollTrigger) {
-            bannerScrollTrigger.kill();
-          }
-          bannerScrollTrigger = createBannerScrollTrigger();
-        }, 250);
-      };
-
-      window.addEventListener('resize', handleResize);
-
-      // Store cleanup function
-      return () => {
-        if (bannerScrollTrigger) {
-          bannerScrollTrigger.kill();
-        }
-        window.removeEventListener('resize', handleResize);
-      };
     }, container);
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <div ref={container} className="min-h-screen w-full bg-[#1A1A1A] text-white overflow-hidden flex flex-col relative">
-
+    <div ref={container} className="min-h-screen w-full bg-[#1A1A1A] overflow-hidden relative">
+      
+      {/* OVERLAY LOGO UNIT - Transforms into navbar logo on scroll */}
       <div
-        ref={logoRef}
-        className="fixed z-[60]"
-        style={{
-          width: '35px',
-          height: '32px',
-          transformOrigin: 'center center',
-        }}
+        ref={fullLogoGroupRef}
+        className="fixed z-[80] flex items-center px-6 md:px-10 pointer-events-none w-full h-[100px] md:h-[180px] lg:h-[150px] 2xl:h-[200px]"
       >
-        <Image
-          src="/images/home/logo/logo-1.png"
-          alt="Logo"
-          height={1500}
-          width={1500}
-          className="object-contain w-full h-full"
-          priority
-        />
-      </div>
-
-      <nav
-        ref={navRef}
-        className="opacity-0 fixed top-5 left-0 right-0 flex items-center justify-between px-6 py-6 md:px-10 z-50 w-full"
-        style={{ height: '72px' }}
-      >
-        <div style={{ width: '35px', height: '32px' }} />
-
-        {/* Navigation Container with Base Border + Rotating Gradient Line */}
-        <div className="relative px-10 py-3.5 bg-[#1A1A1A] ">
-          {/* Base static border - #f1f1f1 with 40% opacity */}
-          <svg
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            style={{ overflow: 'visible' }}
-          >
-            <rect
-              x="2"
-              y="2"
-              width="calc(100% - 2px)"
-              height="calc(100% - 2px)"
-              fill="none"
-              stroke="#f1f1f1"
-              strokeWidth="1.5"
-              strokeOpacity="0.3"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-
-          {/* Rotating gradient line on top */}
-          <svg
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            style={{ overflow: 'visible' }}
-          >
-            <defs>
-              <linearGradient id="rotatingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#09E5E5" stopOpacity="1" />
-                <stop offset="40%" stopColor="#A8FF57" stopOpacity="1" />
-                <stop offset="60%" stopColor="#09E5E5" stopOpacity="1" />
-                <stop offset="100%" stopColor="#A8FF57" stopOpacity="1" />
-              </linearGradient>
-              {/* Glow/blur layer */}
-              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="3" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-            {/* Thick rotating gradient line with blur effect */}
-            <rect
-              ref={rotatingBorderRef}
-              x="2"
-              y="2"
-              width="calc(100% - 4px)"
-              height="calc(100% - 4px)"
-              fill="none"
-              stroke="url(#rotatingGradient)"
-              strokeWidth="3"
-              vectorEffect="non-scaling-stroke"
-              style={{ filter: 'url(#glow)' }}
-            />
-          </svg>
-
-          <ul className="flex space-x-16 text-[14px] lg:text-[16px] font-light text-[#FFFFFF] relative z-10">
-            <li className="cursor-pointer hover:text-[#09E5E5] transition-colors duration-300">home</li>
-            <li className="cursor-pointer hover:text-[#09E5E5] transition-colors duration-300">services</li>
-            <li className="cursor-pointer hover:text-[#09E5E5] transition-colors duration-300">about</li>
-            <li className="cursor-pointer hover:text-[#09E5E5] transition-colors duration-300">contact</li>
-          </ul>
+        <div className="flex-shrink-0 mr-4 md:mr-8 h-full aspect-square">
+          <Image
+            src="/images/home/logo/logo-1.png"
+            alt="Logo Icon"
+            width={500}
+            height={500}
+            className="w-full h-full object-contain"
+            priority
+          />
         </div>
 
-        <div className="flex flex-col space-y-1.5 cursor-pointer group">
-          <div className="w-8 h-[1px] bg-white group-hover:bg-[#09E5E5] transition-colors duration-300"></div>
-          <div className="w-8 h-[1px] bg-white group-hover:bg-[#A8FF57] transition-colors duration-300"></div>
+        <div className="flex-grow h-full">
+          <Image
+            src="/images/home/hero/banner-text.png"
+            alt="ETHICAL DEN"
+            width={3000}
+            height={500}
+            className="w-full h-full object-contain object-left" 
+            priority
+          />
+        </div>
+      </div>
+
+      {/* Navbar Container */}
+      <nav ref={navRef} className="opacity-0 fixed top-0 left-0 right-0 flex items-center justify-between px-6 md:px-10 text-[#f1f1f1] z-[90] h-[100px]">
+        <div className="w-[120px] lg:w-[150px] hidden md:block" /> 
+        <div className="relative px-8 py-3 bg-[#1A1A1A]">
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
+            <rect ref={rotatingBorderRef} x="0" y="0" width="100%" height="100%" fill="none" stroke="url(#rotatingGradient)" strokeWidth="1" />
+            <defs>
+              <linearGradient id="rotatingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#09E5E5" />
+                <stop offset="100%" stopColor="#A8FF57" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <ul className="flex space-x-12 text-[12px] uppercase tracking-[0.4em] font-light">
+            <li>home</li>
+            <li>services</li>
+            <li>about</li>
+            <li>contact</li>
+          </ul>
+        </div>
+        <div className="flex flex-col gap-1.5 cursor-pointer">
+          <div className="w-8 h-[1px] bg-white"></div>
+          <div className="w-8 h-[1px] bg-white"></div>
         </div>
       </nav>
 
-      <div ref={contentRef} className="opacity-0 flex-grow flex flex-col items-center pt-24">
-        <main ref={heroSectionRef} className="relative w-full flex items-start justify-center px-6 md:px-10 pt-16">
-
-          <div className="relative w-[82%] h-[650px] bg-[#181818] rounded-lg overflow-hidden">
-            <video
-              className="w-full h-full object-cover"
-              autoPlay loop muted playsInline
-            >
+      {/* Main Content */}
+      <div ref={contentRef} className="opacity-0 pt-[20vh]">
+        <main ref={heroSectionRef} className="flex flex-col items-center w-full">
+          
+          {/* VIDEO CONTAINER */}
+          <div className="relative w-[65%] h-[50vh] md:h-[70vh] bg-[#111] overflow-hidden ">
+            <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
               <source src="/images/home/hero/security-banner.mp4" type="video/mp4" />
             </video>
+            <div className="absolute inset-0 bg-black/30 pointer-events-none"></div>
           </div>
 
-        </main>
-
-        <section className="w-full bg-[#1A1A1A] pb-20 pt-10">
-          <div className="px-6 md:px-10 w-full">
-            <div className="">
-              <p className="text-[10px] md:text-[11px] lg:text-[15px] uppercase tracking-[0.4em] text-[#ffffff] mb-2 font-medium">
-                Cyberattack Simulation
-              </p>
-              <h2 className="text-2xl md:text-[32px] lg:text-[42px] font-normal text-[#f1f1f1] mb-16 tracking-tight leading-tight">
-                Most advanced cyber-attack simulations: <span className="opacity-80">Ethical Den</span>
-              </h2>
+          {/* Bottom Text Section */}
+          <section className="w-full bg-[#1A1A1A] pb-20 pt-10">
+            <div className="px-6 md:px-10 w-full">
+              <div className="">
+                <p className="text-[10px] md:text-[11px] lg:text-[15px] uppercase tracking-[0.4em] text-[#ffffff] mb-2 font-medium">
+                  Cyberattack Simulation
+                </p>
+                <h2 className="text-2xl md:text-[32px] lg:text-[42px] font-normal text-[#f1f1f1] mb-16 tracking-tight leading-tight">
+                  Most advanced cyber-attack simulations: <span className="opacity-80">Ethical Den</span>
+                </h2>
+              </div>
             </div>
-          </div>
-        </section>
-      </div>
-
-      {/* Banner image - appears after logo animation, positioned lower, moves up during scroll */}
-      <div
-        ref={bannerRef}
-        className="fixed top-48 left-0 w-full px-6 md:px-10 pointer-events-none z-10"
-        style={{ transformOrigin: 'left center', opacity: 0 }}
-      >
-        <Image
-          src="/images/home/hero/banner-text.png"
-          alt="ETHICAL DEN"
-          width={1920}
-          height={400}
-          className="w-full h-auto object-contain select-none"
-          priority
-        />
+          </section>
+        </main>
       </div>
     </div>
   );
