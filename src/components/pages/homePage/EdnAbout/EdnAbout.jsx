@@ -10,137 +10,124 @@ const EdnAbout = () => {
   const sectionRefs = useRef([]);
   const topTitleRef = useRef(null);
   const bottomNumberRef = useRef(null);
-  const videoRef = useRef(null);
-  const videoContainerRef = useRef(null);
-  const leftContentRef = useRef(null);
-  const rightContentRef = useRef(null);
   
   // Tech section refs
   const techContainerRef = useRef(null);
   const techMaskRef = useRef(null);
 
   useEffect(() => {
-    // Set initial hidden state for title and number
-    gsap.set(topTitleRef.current, { opacity: 0, y: -30 });
-    gsap.set(bottomNumberRef.current, { opacity: 0 });
-
-    const sections = [
-      { title: "Solution", number: "001", color: "black", bgColor: "#D9D9D9" },
-      { title: "About", number: "002", color: "white", bgColor: "#1A1A1A" },
-      { title: "Technology", number: "003", color: "white", bgColor: "#1A1A1A" },
+    const sectionsData = [
+      { title: "Solution", number: "001", color: "black" },
+      { title: "About", number: "002", color: "white" },
+      { title: "Technology", number: "003", color: "white" },
     ];
 
-    sections.forEach((section, idx) => {
-      ScrollTrigger.create({
-        trigger: sectionRefs.current[idx],
-        start: "top top",
-        end: "bottom top",
-        onEnter: () => {
-          gsap.to(topTitleRef.current, {
-            opacity: 0,
-            y: -30,
-            duration: 0.3,
-            ease: "power2.in",
-            onComplete: () => {
+    // Function to update text - ONLY for the active section
+    const updateActiveSection = () => {
+      let activeIndex = -1;
+      
+      // Find which section is currently in view
+      for (let i = 0; i < sectionRefs.current.length; i++) {
+        const section = sectionRefs.current[i];
+        if (!section) continue;
+        
+        const rect = section.getBoundingClientRect();
+        // Section is active when its top is above or at 30% and bottom is below 30%
+        if (rect.top <= window.innerHeight * 0.3 && rect.bottom >= window.innerHeight * 0.3) {
+          activeIndex = i;
+          break;
+        }
+      }
+      
+      // If no section is found, default to first section
+      if (activeIndex === -1 && sectionRefs.current[0]) {
+        activeIndex = 0;
+      }
+      
+      const section = sectionsData[activeIndex];
+      
+      // Update top title with animation
+      if (topTitleRef.current && topTitleRef.current.innerHTML !== section.title) {
+        gsap.killTweensOf(topTitleRef.current);
+        gsap.to(topTitleRef.current, {
+          opacity: 0,
+          y: -30,
+          duration: 0.2,
+          ease: "power2.in",
+          onComplete: () => {
+            if (topTitleRef.current) {
               topTitleRef.current.innerHTML = section.title;
               topTitleRef.current.style.color = section.color;
               gsap.to(topTitleRef.current, {
                 opacity: 1,
                 y: 0,
-                duration: 0.5,
+                duration: 0.3,
                 ease: "power2.out",
               });
-            },
-          });
-        },
-        onLeave: () => {
-          gsap.to(topTitleRef.current, {
-            opacity: 0,
-            y: -30,
-            duration: 0.4,
-            ease: "power2.in",
-          });
-        },
-        onLeaveBack: () => {
-          gsap.to(topTitleRef.current, {
-            opacity: 0,
-            y: -30,
-            duration: 0.4,
-            ease: "power2.in",
-          });
-        },
-        onEnterBack: () => {
-          gsap.to(topTitleRef.current, {
-            opacity: 0,
-            y: -30,
-            duration: 0.3,
-            ease: "power2.in",
-            onComplete: () => {
-              topTitleRef.current.innerHTML = section.title;
-              topTitleRef.current.style.color = section.color;
-              gsap.to(topTitleRef.current, {
-                opacity: 1,
-                y: 0,
-                duration: 0.5,
+            }
+          },
+        });
+      } else if (topTitleRef.current && topTitleRef.current.innerHTML === section.title) {
+        // Ensure it's visible
+        gsap.set(topTitleRef.current, { opacity: 1, y: 0 });
+      }
+      
+      // Update bottom number with animation
+      if (bottomNumberRef.current && bottomNumberRef.current.innerHTML !== section.number) {
+        gsap.killTweensOf(bottomNumberRef.current);
+        gsap.to(bottomNumberRef.current, {
+          opacity: 0,
+          duration: 0.2,
+          ease: "power2.in",
+          onComplete: () => {
+            if (bottomNumberRef.current) {
+              bottomNumberRef.current.innerHTML = section.number;
+              bottomNumberRef.current.style.color = section.color;
+              gsap.to(bottomNumberRef.current, {
+                opacity: 0.4,
+                duration: 0.3,
                 ease: "power2.out",
               });
-            },
-          });
-        },
-      });
+            }
+          },
+        });
+      } else if (bottomNumberRef.current && bottomNumberRef.current.innerHTML === section.number) {
+        // Ensure it's visible with correct opacity
+        gsap.set(bottomNumberRef.current, { opacity: 0.4 });
+      }
+    };
 
-      ScrollTrigger.create({
-        trigger: sectionRefs.current[idx],
-        start: "top bottom",
-        end: "bottom top",
-        onEnter: () => {
-          gsap.to(bottomNumberRef.current, {
-            opacity: 0,
-            duration: 0.3,
-            ease: "power2.in",
-            onComplete: () => {
-              bottomNumberRef.current.innerHTML = section.number;
-              bottomNumberRef.current.style.color = section.color;
-              gsap.to(bottomNumberRef.current, {
-                opacity: 0.4,
-                duration: 0.5,
-                ease: "power2.out",
-              });
-            },
-          });
-        },
-        onLeave: () => {
-          gsap.to(bottomNumberRef.current, {
-            opacity: 0,
-            duration: 0.4,
-            ease: "power2.in",
-          });
-        },
-        onLeaveBack: () => {
-          gsap.to(bottomNumberRef.current, {
-            opacity: 0,
-            duration: 0.4,
-            ease: "power2.in",
-          });
-        },
-        onEnterBack: () => {
-          gsap.to(bottomNumberRef.current, {
-            opacity: 0,
-            duration: 0.3,
-            ease: "power2.in",
-            onComplete: () => {
-              bottomNumberRef.current.innerHTML = section.number;
-              bottomNumberRef.current.style.color = section.color;
-              gsap.to(bottomNumberRef.current, {
-                opacity: 0.4,
-                duration: 0.5,
-                ease: "power2.out",
-              });
-            },
-          });
-        },
-      });
-    });
+    // Set initial values based on first section
+    if (topTitleRef.current) {
+      topTitleRef.current.innerHTML = "Solution";
+      topTitleRef.current.style.color = "black";
+      gsap.set(topTitleRef.current, { opacity: 1, y: 0 });
+    }
+    if (bottomNumberRef.current) {
+      bottomNumberRef.current.innerHTML = "001";
+      bottomNumberRef.current.style.color = "black";
+      gsap.set(bottomNumberRef.current, { opacity: 0.4 });
+    }
+
+    // Create ScrollTrigger that updates on scroll with throttling
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          updateActiveSection();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    
+    window.addEventListener('scroll', onScroll);
+    
+    // Initial call after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      updateActiveSection();
+      ScrollTrigger.refresh();
+    }, 100);
 
     // Content fade-in animations
     sectionRefs.current.forEach((section, idx) => {
@@ -227,7 +214,6 @@ const EdnAbout = () => {
         ease: "none",
       });
 
-      // Individual card entrance animations
       gsap.utils.toArray(".card-wrapper").forEach((card) => {
         gsap.from(card, {
           y: 60,
@@ -243,32 +229,10 @@ const EdnAbout = () => {
     }
 
     return () => {
+      window.removeEventListener('scroll', onScroll);
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, []);
-
-  const techSpecs = [
-    {
-      title: "Realistic Threat Simulations",
-      description:
-        "Experience attacks modeled after real-world cybercriminals. Testing defenses against tactics from groups like Double Dragon, Fancy Bear, and Lazarus Group.",
-    },
-    {
-      title: "Safe & Controlled Testing",
-      description:
-        "Conduct simulations without disrupting operations, allowing focus on strengthening systems securely.",
-    },
-    {
-      title: "AI-Powered Hacking Tools",
-      description:
-        "Utilize advanced AI tools developed by HackFirst to emulate sophisticated cybercriminal strategies, uncovering vulnerabilities others miss.",
-    },
-    {
-      title: "World-Class Ethical Hackers",
-      description:
-        "Collaborate with a team of over 10 world-class ethical hackers who think like black-hat attackers and use their skills to protect your organization.",
-    },
-  ];
 
   // Modern tech cards data
   const modernTechSpecs = [
@@ -278,7 +242,6 @@ const EdnAbout = () => {
     { title: "Elite Squad", sub: "Ethical Hackers", desc: "10+ hackers thinking like the adversary." },
   ];
 
-  // Shared Card Component for modern section
   const TechCard = ({ spec, inverted = false }) => (
     <div className={`group relative p-8 md:p-12 border ${inverted ? 'border-black/20' : 'border-white/20'} h-full flex flex-col justify-center text-center transition-all duration-500`}>
       <h3 className={`text-3xl md:text-5xl font-bold uppercase tracking-tight mb-2 ${inverted ? 'text-black' : 'text-white'}`}>
@@ -406,8 +369,7 @@ const EdnAbout = () => {
         </div>
       </section>
 
-      {/* Section 3 - Modern Mask Reveal Section */}
-      {/* IMPORTANT: This div is now the third section - added to sectionRefs */}
+      {/* Section 3 */}
       <div 
         ref={(el) => {
           sectionRefs.current[2] = el;
@@ -415,8 +377,6 @@ const EdnAbout = () => {
         }}
         className="relative h-screen w-full overflow-hidden bg-[#0D0D0D]"
       >
-        
-        {/* Layer 1: Dark Mode (Default State) */}
         <div className="absolute inset-0 flex items-center justify-center p-6 md:p-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-7xl">
             {modernTechSpecs.map((spec, i) => (
@@ -427,7 +387,6 @@ const EdnAbout = () => {
           </div>
         </div>
 
-        {/* Layer 2: Green Mode (Masked Reveal) */}
         <div 
           ref={techMaskRef}
           className="absolute inset-0 bg-[#A8FF57] flex items-center justify-center z-20 pointer-events-none"
@@ -442,7 +401,6 @@ const EdnAbout = () => {
           </div>
         </div>
 
-        {/* Scroll indicator for modern vibe */}
         <div className="absolute bottom-8 right-8 z-30 flex items-center gap-4">
           <span className="text-[10px] uppercase tracking-[0.4em] text-white/40">Scroll to Breach</span>
           <div className="w-12 h-[1px] bg-[#A8FF57]" />
