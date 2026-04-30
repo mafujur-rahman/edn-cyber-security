@@ -104,12 +104,12 @@ const CinematicHero = () => {
       >
         {/* Logo - Left side, matching navbar height and style */}
         <div className="absolute left-6 md:left-10">
-          <div className="relative w-[60px] md:w-[80px] lg:w-[100px]  p-2 rounded">
+          <div className="relative w-[60px] md:w-[80px] lg:w-[200px]  p-2 rounded">
             <Image
               src="/images/home/logo/footer-logo.png"
               alt="Website Logo"
-              width={100}
-              height={100}
+              width={700}
+              height={700}
               className="w-full h-auto object-contain"
               priority
             />
