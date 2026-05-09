@@ -1,54 +1,26 @@
 // components/CinematicHero.jsx
 "use client";
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import Image from 'next/image';
 import { GradientButton } from '@/components/utils/GradiantButton';
 
-
 const CinematicHero = () => {
-  const introVideoRef = useRef(null);
   const loopVideoRef = useRef(null);
   const topBarRef = useRef(null);
   const contentRef = useRef(null);
-  
   const contactBtnRef = useRef(null);
   const discoverBtnRef = useRef(null);
 
-  useEffect(() => {
-    const handleIntroEnd = () => {
-      if (introVideoRef.current && loopVideoRef.current) {
-        introVideoRef.current.style.display = 'none';
-        loopVideoRef.current.style.display = 'block';
-        loopVideoRef.current.play();
-      }
-    };
-    
-    const introVideo = introVideoRef.current;
-    introVideo?.addEventListener('ended', handleIntroEnd);
-
-    return () => {
-      introVideo?.removeEventListener('ended', handleIntroEnd);
-    };
-  }, []);
-
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black text-white font-sans">
-      {/* Background Videos */}
-      <video 
-        ref={introVideoRef} 
-        autoPlay 
-        muted 
-        playsInline 
-        className="absolute inset-0 w-full h-full object-cover z-0"
-      >
-        <source src="/video/intro.mp4" type="video/mp4" />
-      </video>
+      {/* Loop Video */}
       <video 
         ref={loopVideoRef} 
+        autoPlay 
         muted 
         loop 
         playsInline 
-        className="absolute inset-0 w-full h-full hidden object-cover z-0"
+        className="absolute inset-0 w-full h-full object-cover z-0"
       >
         <source src="/video/banner-loop.mp4" type="video/mp4" />
       </video>
