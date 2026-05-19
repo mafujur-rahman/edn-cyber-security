@@ -14,40 +14,36 @@ export default function Footer() {
     useEffect(() => {
         const glowElement = glowRef.current;
 
-        // Animation for appearing on scroll down
+        // Set initial hidden state
+        gsap.set(glowElement, {
+            width: "0%",
+            height: "0px",
+            opacity: 0,
+        });
+
+        // Animation for appearing as you scroll within the footer
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: footerRef.current,
-                start: "top 80%",
-                end: "bottom bottom",
-                scrub: 1.5,
+                start: "top 60%",           // Starts when footer enters viewport
+                end: "bottom bottom",        // Completes when footer bottom hits viewport bottom
+                scrub: 2.5,                  // Smooth, slow scrub
                 markers: false,
-                onLeaveBack: () => {
-                    // Reset animation when scrolling back up
-                    gsap.set(glowElement, {
-                        width: "0%",
-                        height: "0px",
-                        opacity: 0,
-                        immediateRender: false
-                    });
-                }
+                invalidateOnRefresh: true,
             }
         });
 
         tl.fromTo(
             glowElement,
             {
-                width: "100%",
+                width: "0%",
                 height: "0px",
                 opacity: 0,
-                filter: "blur(10px)",
             },
             {
-                width: "150%",
-                height: "160px", 
-                opacity: 0.8,
-                filter: "blur(12px)",
-                duration: 2,
+                width: "100%",
+                height: "280px",
+                opacity: 1,
                 ease: "power2.out",
             },
             0
@@ -61,7 +57,7 @@ export default function Footer() {
     return (
         <footer
             ref={footerRef}
-            className="relative w-full bg-black pt-24 pb-12 px-6 overflow-hidden"
+            className="relative w-full bg-black pt-24 pb-12 px-6 overflow-visible"
         >
             <div className="relative z-10 max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-20">
@@ -127,27 +123,61 @@ export default function Footer() {
                 </div>
             </div>
 
-            {/* Bottom Glowing Gradient Effect - appears on scroll */}
+            {/* Bottom Glowing Gradient Effect - Reveals smoothly while scrolling within footer */}
             <div className="absolute bottom-0 left-0 w-full flex justify-center pointer-events-none">
                 <div
                     ref={glowRef}
-                    className="relative transition-all duration-500"
+                    className="relative w-full"
                     style={{
                         width: "0%",
                         maxWidth: "1280px",
                         height: "0px",
-                        background: `radial-gradient(
-                            ellipse at bottom,
-                            rgba(168, 255, 87, 0.4) 0%,
-                            rgba(9, 229, 229, 0.2) 40%,
-                            transparent 70%
-                        )`,
-                        borderRadius: "100% 100% 0 0",
                         opacity: 0,
-                        borderBottom: "2px solid rgba(168, 255, 87, 0.3)",
                     }}
                 >
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-full bg-gradient-to-t from-[rgba(9,229,229,0.2)] to-transparent blur-2xl" />
+                    {/* Main gradient with straight bottom edge */}
+                    <div 
+                        className="absolute bottom-0 left-0 w-full"
+                        style={{
+                            height: "280px",
+                            background: `linear-gradient(
+                                to top,
+                                rgba(168, 255, 87, 0.45) 0%,
+                                rgba(168, 255, 87, 0.2) 15%,
+                                rgba(9, 229, 229, 0.1) 35%,
+                                transparent 80%
+                            )`,
+                        }}
+                    >
+                        {/* Sharp accent line at the bottom */}
+                        <div 
+                            className="absolute bottom-0 left-0 w-full"
+                            style={{
+                                height: "2px",
+                                background: "linear-gradient(90deg, transparent, rgba(168, 255, 87, 0.7), rgba(9, 229, 229, 0.5), rgba(168, 255, 87, 0.7), transparent)",
+                            }}
+                        />
+                    </div>
+
+                    {/* Soft glow above the line */}
+                    <div 
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4"
+                        style={{
+                            height: "140px",
+                            background: "radial-gradient(ellipse at center bottom, rgba(168, 255, 87, 0.25), transparent 70%)",
+                            filter: "blur(20px)",
+                        }}
+                    />
+                    
+                    {/* Extra ambient glow extending higher */}
+                    <div 
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full"
+                        style={{
+                            height: "200px",
+                            background: "radial-gradient(ellipse at center bottom, rgba(9, 229, 229, 0.1), transparent 80%)",
+                            filter: "blur(35px)",
+                        }}
+                    />
                 </div>
             </div>
         </footer>

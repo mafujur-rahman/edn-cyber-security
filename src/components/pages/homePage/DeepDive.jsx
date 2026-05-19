@@ -25,12 +25,22 @@ export default function DeepDive() {
           <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
             Looking to go deeper?
           </h2>
-          {/* The "Glow" line from the screenshot */}
-          <div className="relative inline-block">
-            {/* Blurry gradient background */}
-            <div className="absolute w-[620px] h-[80px] bg-gradient-to-r from-[#09E5E5] to-[#A8FF57] blur-[10px] opacity-20 z-0 rounded-full" />
+          
+          {/* The "Glow" line matching your exact gradient */}
+          <div className="relative inline-block isolate">
+            {/* This layer acts as the gradient shadow. 
+              By matching the exact text, font sizing, and applying a blur filter, 
+              it creates a glowing silhouette using your specific gradient colors.
+            */}
+            <span 
+              className="absolute inset-0 text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-[#09E5E5] to-[#A8FF57] bg-clip-text text-transparent blur-md select-none opacity-70 transform translate-y-[2px]"
+              aria-hidden="true"
+            >
+              Let’s light up the depths.
+            </span>
 
-            <h2 className="relative text-4xl md:text-6xl font-bold tracking-tight text-white z-10">
+            {/* Core White Text Layer with a subtle white text-shadow for crispness */}
+            <h2 className="relative text-4xl md:text-6xl font-bold tracking-tight text-white z-10 [text-shadow:0_0_8px_rgba(255,255,255,0.3)]">
               Let’s light up the depths.
             </h2>
           </div>

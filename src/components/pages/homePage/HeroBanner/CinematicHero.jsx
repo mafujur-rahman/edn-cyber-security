@@ -14,7 +14,7 @@ const CinematicHero = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black text-white font-sans">
       {/* Loop Video */}
-      <video 
+      {/* <video 
         ref={loopVideoRef} 
         autoPlay 
         muted 
@@ -23,7 +23,7 @@ const CinematicHero = () => {
         className="absolute inset-0 w-full h-full object-cover z-0"
       >
         <source src="/video/banner-loop.mp4" type="video/mp4" />
-      </video>
+      </video> */}
 
       <div className="relative z-10 w-full h-full flex flex-col items-center">
         {/* Header */}

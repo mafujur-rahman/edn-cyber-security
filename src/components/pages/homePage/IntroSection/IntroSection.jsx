@@ -441,15 +441,30 @@ export default function IntroSection() {
     <div className="bg-black">
       <main ref={containerRef} className="min-h-screen">
         <section className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden px-6">
+          {/* Updated Gradient - Lower height, no top border, only bottom sharp line */}
           <div
             ref={gradientRef}
             className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1400px] pointer-events-none origin-top"
             style={{ transform: "scaleY(0)", opacity: 0 }}
           >
-            <div
-              className="w-full pt-[50%] relative"
-              style={{ background: "radial-gradient(ellipse 50% 50% at 50% 0%, #A8FF57 0%, #09E5E5 45%, transparent 70%)" }}
-            />
+            <div className="relative w-full">
+              {/* Main gradient - much lower height */}
+              <div
+                className="w-full"
+                style={{
+                  height: "200px",
+                  background: `linear-gradient(
+                    to bottom,
+                    rgba(168, 255, 87, 0.3) 0%,
+                    rgba(168, 255, 87, 0.15) 20%,
+                    rgba(9, 229, 229, 0.08) 40%,
+                    transparent 100%
+                  )`,
+                }}
+              >
+                
+              </div>
+            </div>
           </div>
 
           <div

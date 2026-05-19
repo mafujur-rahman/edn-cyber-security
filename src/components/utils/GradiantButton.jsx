@@ -100,7 +100,7 @@ export const GradientButton = forwardRef(({
 
             animationRef.current = gsap.to(rectRef.current, {
                 strokeDashoffset: -length,
-                duration: 6,
+                duration: 8,
                 repeat: -1,
                 ease: "none",
             });
