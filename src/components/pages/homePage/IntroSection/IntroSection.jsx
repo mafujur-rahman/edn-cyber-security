@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import { GradientButton } from "@/components/utils/GradiantButton";
 
 // Register ScrollTrigger
 if (typeof window !== "undefined") {
@@ -21,7 +22,7 @@ const ProtectionShowcase = () => {
     const ctx = gsap.context(() => {
       const path = activeLineRef.current;
       const pathLength = path.getTotalLength();
-      
+
       // Set initial state - line not drawn yet
       gsap.set(path, { strokeDasharray: pathLength, strokeDashoffset: pathLength });
 
@@ -97,10 +98,10 @@ const ProtectionShowcase = () => {
       {/* THE SPINE - Centered horizontally with responsive containment */}
       <div ref={svgContainerRef} className="absolute inset-0 flex justify-center pointer-events-none overflow-visible -mt-[480px]">
         <div className="relative h-full w-[150px] max-w-[150px] shrink-0">
-          <svg 
-            viewBox="0 0 151 2251" 
-            className="w-full h-full" 
-            fill="none" 
+          <svg
+            viewBox="0 0 151 2251"
+            className="w-full h-full"
+            fill="none"
             preserveAspectRatio="xMidYMid meet"
           >
             <defs>
@@ -117,17 +118,17 @@ const ProtectionShowcase = () => {
                 </feMerge>
               </filter>
             </defs>
-            
+
             {/* Background gray path - always visible as base */}
             <path d={pathData} stroke="#2a2a2a" strokeWidth="2" fill="none" />
-            
+
             {/* Active gradient path that gets revealed during scroll */}
-            <path 
-              ref={activeLineRef} 
-              d={pathData} 
-              stroke="url(#lineGradient)" 
-              strokeWidth="3" 
-              fill="none" 
+            <path
+              ref={activeLineRef}
+              d={pathData}
+              stroke="url(#lineGradient)"
+              strokeWidth="3"
+              fill="none"
               filter="url(#glow)"
               className="transition-all duration-300"
             />
@@ -166,7 +167,7 @@ const ProtectionShowcase = () => {
           </div>
 
           {/* Content Card (Right) */}
-          <div className="reveal-card absolute left-[5%] sm:left-[48%] top-[510px] w-[90vw] sm:w-full max-w-[90vw] sm:max-w-3xl">
+          <div className="reveal-card absolute left-[5%] sm:left-[48%] top-[510px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl">
             <GlassCard
               title="Phishing as a defense"
               desc="MoK.N Baits are defensive phishing pages that lure attackers into revealing compromised credentials before they're used."
@@ -177,7 +178,7 @@ const ProtectionShowcase = () => {
         {/* SECTION 2: Curve 2 */}
         <div className="relative min-h-[900px] h-auto md:h-[900px] mb-8 md:mb-0">
           {/* Content Card (Left) */}
-          <div className="reveal-card absolute left-[5%] sm:right-[48%] sm:left-auto top-[300px] w-[90vw] sm:w-full max-w-[90vw] sm:max-w-3xl z-10">
+          <div className="reveal-card absolute left-[5%] sm:right-[48%] sm:left-auto top-[300px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl z-10">
             <GlassCard
               side="left"
               title="Only valid credentials"
@@ -265,7 +266,7 @@ const ProtectionShowcase = () => {
           </div>
 
           {/* Content Card (Right) */}
-          <div className="reveal-card absolute left-[5%] sm:left-[48%] -top-[80px] sm:-top-[80px] top-[-60px] w-[90vw] sm:w-full max-w-[90vw] sm:max-w-3xl">
+          <div className="reveal-card absolute left-[5%] sm:left-[48%] -top-[80px] sm:-top-[80px] top-[-60px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl">
             <GlassCard
               title="Tailored Threat intelligence"
               desc="Monitor real attacker activity targeting your environment. No generic feeds, only insights tied to your users, systems, and domains."
@@ -275,15 +276,15 @@ const ProtectionShowcase = () => {
 
         {/* SECTION 4: Final Curve / Bottom */}
         <div className="reveal-card flex justify-center pb-16 sm:pb-40 px-4 sm:px-6 -mt-[300px] sm:-mt-[400px] relative z-20">
-          <div className="w-full max-w-6xl bg-zinc-950/50 border border-white/10 p-6 sm:p-12 md:p-24 text-center relative overflow-hidden shadow-2xl">
+          <div className="w-full max-w-6xl bg-zinc-950 border border-white/10 p-6 sm:p-12 md:p-24 text-center relative overflow-hidden shadow-2xl">
 
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-gradient-to-b from-[#09E5E5]/10 to-transparent blur-[120px] -z-10" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 blur-[120px] -z-10" />
             <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
 
-            <div className="absolute -top-1.5 -left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 shadow-[0_0_15px_white]" />
-            <div className="absolute -top-1.5 -right-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 shadow-[0_0_15px_white]" />
-            <div className="absolute -bottom-1.5 -left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 shadow-[0_0_15px_white]" />
-            <div className="absolute -bottom-1.5 -right-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 shadow-[0_0_15px_white]" />
+            <div className="absolute -top-1.5 -left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 " />
+            <div className="absolute -top-1.5 -right-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 " />
+            <div className="absolute -bottom-1.5 -left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 " />
+            <div className="absolute -bottom-1.5 -right-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 " />
 
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 tracking-tight text-white leading-tight">
               3 minutes to implement <br className="hidden sm:block" />
@@ -295,12 +296,14 @@ const ProtectionShowcase = () => {
               Go from zero to live detection in minutes, with a seamless onboarding experience.
             </p>
 
-            <button className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#09E5E5]/50 to-[#A8FF57]/50 rounded blur opacity-30 group-hover:opacity-100 transition duration-1000"></div>
-              <div className="relative bg-black border border-white/10 px-6 sm:px-8 py-3 sm:py-4 rounded-md text-white font-bold text-xs sm:text-sm tracking-widest uppercase hover:border-white/30 transition-colors">
-                Learn more about Baits
-              </div>
-            </button>
+            {/* Primary Action */}
+            <GradientButton
+              className="px-8 py-3 text-sm md:text-lg font-bold tracking-tight cursor-pointer text-white"
+              variant="primary"
+              onClick={() => console.log('Learn more about baits clicked')}
+            >
+              Learn more about baits
+            </GradientButton>
           </div>
         </div>
 
@@ -310,9 +313,9 @@ const ProtectionShowcase = () => {
 };
 
 const GlassCard = ({ title, desc, side = "left" }) => (
-  <div className={`relative group p-6 sm:p-8 md:p-16 bg-zinc-900/40 border border-white/5 backdrop-blur-md rounded-sm min-h-[300px] sm:min-h-[400px] flex flex-col justify-center ${side === 'right' ? 'text-right items-end' : 'text-left items-start'}`}>
+  <div className={`relative group p-6 sm:p-8 md:p-10 bg-zinc-950 border border-white/5 backdrop-blur-md rounded-sm min-h-[300px] sm:min-h-[400px] flex flex-col justify-center ${side === 'right' ? 'text-right items-end' : 'text-left items-start'}`}>
 
-    <div className={`absolute top-1/4 ${side === 'right' ? 'right-4 sm:right-10' : 'left-4 sm:left-10'} w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-r from-[#09E5E5]/15 to-[#A8FF57]/15 blur-[60px] -z-10`} />
+    <div className={`absolute top-1/4 ${side === 'right' ? 'right-4 sm:right-10' : 'left-4 sm:left-10'} w-24 h-24 sm:w-32 sm:h-32  blur-[60px] -z-10`} />
 
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
       <div className="w-10 h-10 sm:w-14 sm:h-14 bg-zinc-950 border border-white/10 rounded-xl flex items-center justify-center shadow-2xl shrink-0">
@@ -320,7 +323,7 @@ const GlassCard = ({ title, desc, side = "left" }) => (
           <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
       </div>
-      <h3 className="text-2xl sm:text-3xl md:text-5xl font-semibold tracking-tight text-white text-left">{title}</h3>
+      <h3 className="text-2xl sm:text-3xl md:text-5xl lg:text-4xl font-semibold tracking-tight text-white text-left">{title}</h3>
     </div>
 
     <p className="text-zinc-400 text-base sm:text-lg md:text-xl leading-relaxed max-w-xl font-light text-left">
@@ -330,7 +333,7 @@ const GlassCard = ({ title, desc, side = "left" }) => (
 );
 
 const VisualCard = ({ children, rotation = "", width = "w-96", height = "h-40" }) => (
-  <div className={`${width} ${height} bg-zinc-950/90 border border-white/10 relative shadow-2xl ${rotation} flex flex-col justify-center px-4 sm:px-8`}>
+  <div className={`${width} ${height} bg-zinc-950 border border-white/10 relative shadow-2xl ${rotation} flex flex-col justify-center px-4 sm:px-8`}>
     <div className="absolute -top-1 -left-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
     <div className="absolute -top-1 -right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
     <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
@@ -452,7 +455,7 @@ export default function IntroSection() {
               <div
                 className="w-full"
                 style={{
-                  height: "200px",
+                  height: "240px",
                   background: `linear-gradient(
                     to bottom,
                     rgba(168, 255, 87, 0.3) 0%,
@@ -462,7 +465,7 @@ export default function IntroSection() {
                   )`,
                 }}
               >
-                
+
               </div>
             </div>
           </div>
