@@ -12,7 +12,7 @@ export default function DeepDive() {
         {/* The Asset - Replace with your actual .png or .webp */}
         <div className="relative aspect-square w-64 md:w-80">
           <img
-            src="/images/home/HD_Intro.webp"
+            src="/images/home/logo/3d-transparent.png"
             alt="Lantern Device"
             className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]"
           />

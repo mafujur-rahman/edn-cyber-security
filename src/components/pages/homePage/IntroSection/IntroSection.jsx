@@ -27,6 +27,7 @@ const ProtectionShowcase = () => {
       gsap.set(path, { strokeDasharray: pathLength, strokeDashoffset: pathLength });
 
       // Animate line drawing from top to bottom as scroll progresses
+      // Using scrub: 0.3 for smoother, more gradual animation per scroll tick
       gsap.to(path, {
         strokeDashoffset: 0,
         ease: "none",
@@ -34,7 +35,7 @@ const ProtectionShowcase = () => {
           trigger: containerRef.current,
           start: "top center",
           end: "bottom center",
-          scrub: 1,
+          scrub: 0.3, // Reduced for smoother line drawing
           invalidateOnRefresh: true,
         }
       });
@@ -70,12 +71,54 @@ const ProtectionShowcase = () => {
           }
         });
       });
+
+      // Gradient border animation for cards when they intersect with the line
+      gsap.utils.toArray('.gradient-border-card').forEach((card) => {
+        ScrollTrigger.create({
+          trigger: card,
+          start: "top 70%",
+          end: "bottom 30%",
+          onEnter: () => {
+            card.classList.add('card-highlight');
+          },
+          onLeave: () => {
+            card.classList.remove('card-highlight');
+          },
+          onEnterBack: () => {
+            card.classList.add('card-highlight');
+          },
+          onLeaveBack: () => {
+            card.classList.remove('card-highlight');
+          }
+        });
+      });
+      
     }, containerRef);
     return () => ctx.revert();
   }, []);
 
   return (
     <div ref={containerRef} className="text-white relative py-0 overflow-x-clip">
+
+      {/* Add custom styles for gradient border animation */}
+      <style jsx>{`
+        .gradient-border-card {
+          transition: all 0.3s ease-out;
+        }
+        .gradient-border-card.card-highlight {
+          box-shadow: 0 0 0 1px rgba(9, 229, 229, 0.3), 0 0 0 3px rgba(168, 255, 87, 0.2), 0 0 20px rgba(9, 229, 229, 0.1);
+        }
+        .gradient-border-card.card-highlight::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          background: linear-gradient(135deg, #09E5E5, #A8FF57, #09E5E5);
+          border-radius: inherit;
+          opacity: 0.4;
+          pointer-events: none;
+          z-index: -1;
+        }
+      `}</style>
 
       <div className="relative z-30 pt-20 text-center">
         <div className="relative inline-block">
@@ -130,7 +173,7 @@ const ProtectionShowcase = () => {
               strokeWidth="3"
               fill="none"
               filter="url(#glow)"
-              className="transition-all duration-300"
+              className="transition-all duration-75"
             />
           </svg>
         </div>
@@ -142,7 +185,7 @@ const ProtectionShowcase = () => {
         {/* SECTION 1: Curve 1 */}
         <div className="relative min-h-[850px] h-auto md:h-[850px] mb-8 md:mb-0">
           {/* Credential Card (Left) */}
-          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[650px] z-20 w-auto max-w-[90vw] sm:max-w-none">
+          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[650px] z-20 w-auto max-w-[90vw] sm:max-w-none gradient-border-card">
             <VisualCard rotation="-rotate-[12deg]" width="w-[90vw] sm:w-[440px]" height="h-auto sm:h-40 min-h-[160px]">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 p-4 sm:p-0">
                 <div className="w-14 h-14 rounded-full bg-zinc-800/50 flex items-center justify-center border border-white/5 shrink-0">
@@ -167,7 +210,7 @@ const ProtectionShowcase = () => {
           </div>
 
           {/* Content Card (Right) */}
-          <div className="reveal-card absolute left-[5%] sm:left-[48%] top-[510px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl">
+          <div className="reveal-card absolute left-[5%] sm:left-[48%] top-[510px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl gradient-border-card">
             <GlassCard
               title="Phishing as a defense"
               desc="MoK.N Baits are defensive phishing pages that lure attackers into revealing compromised credentials before they're used."
@@ -178,7 +221,7 @@ const ProtectionShowcase = () => {
         {/* SECTION 2: Curve 2 */}
         <div className="relative min-h-[900px] h-auto md:h-[900px] mb-8 md:mb-0">
           {/* Content Card (Left) */}
-          <div className="reveal-card absolute left-[5%] sm:right-[48%] sm:left-auto top-[300px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl z-10">
+          <div className="reveal-card absolute left-[5%] sm:right-[48%] sm:left-auto top-[300px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl gradient-border-card z-10">
             <GlassCard
               side="left"
               title="Only valid credentials"
@@ -187,7 +230,7 @@ const ProtectionShowcase = () => {
           </div>
 
           {/* Visual Card Stack (Right) */}
-          <div className="reveal-card absolute left-[5%] sm:right-[8%] sm:left-auto top-[380px] w-[90vw] sm:w-auto">
+          <div className="reveal-card absolute left-[5%] sm:right-[8%] sm:left-auto top-[380px] w-[90vw] sm:w-auto gradient-border-card">
             <div className="relative group">
               <div className="hidden sm:block absolute top-[-40px] -left-8 w-[400px] h-48 bg-zinc-900/20 border border-white/5 -rotate-[8deg] blur-[1px] opacity-40" />
               <div className="hidden sm:block absolute top-[-20px] -left-4 w-[400px] h-48 bg-zinc-900/40 border border-white/5 -rotate-[5deg] opacity-60" />
@@ -222,7 +265,7 @@ const ProtectionShowcase = () => {
         {/* SECTION 3: Curve 3 */}
         <div className="relative min-h-[850px] h-auto md:h-[850px] mb-8 md:mb-0">
           {/* Attack Overview Chart (Left) */}
-          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[0px] z-20 w-auto max-w-[90vw] sm:max-w-none">
+          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[0px] z-20 w-auto max-w-[90vw] sm:max-w-none gradient-border-card">
             <VisualCard rotation="rotate-0" width="w-[90vw] sm:w-[450px]" height="h-auto sm:h-64 min-h-[280px]">
               <div className="relative h-full p-4 sm:p-0">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
@@ -266,7 +309,7 @@ const ProtectionShowcase = () => {
           </div>
 
           {/* Content Card (Right) */}
-          <div className="reveal-card absolute left-[5%] sm:left-[48%] -top-[80px] sm:-top-[80px] top-[-60px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl">
+          <div className="reveal-card absolute left-[5%] sm:left-[48%] -top-[80px] sm:-top-[80px] top-[-60px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl gradient-border-card">
             <GlassCard
               title="Tailored Threat intelligence"
               desc="Monitor real attacker activity targeting your environment. No generic feeds, only insights tied to your users, systems, and domains."
@@ -276,7 +319,7 @@ const ProtectionShowcase = () => {
 
         {/* SECTION 4: Final Curve / Bottom */}
         <div className="reveal-card flex justify-center pb-16 sm:pb-40 px-4 sm:px-6 -mt-[300px] sm:-mt-[400px] relative z-20">
-          <div className="w-full max-w-6xl bg-zinc-950 border border-white/10 p-6 sm:p-12 md:p-24 text-center relative overflow-hidden shadow-2xl">
+          <div className="w-full max-w-6xl bg-zinc-950 border border-white/10 p-6 sm:p-12 md:p-24 text-center relative overflow-hidden shadow-2xl gradient-border-card">
 
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 blur-[120px] -z-10" />
             <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
