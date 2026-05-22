@@ -27,15 +27,16 @@ const ProtectionShowcase = () => {
       gsap.set(path, { strokeDasharray: pathLength, strokeDashoffset: pathLength });
 
       // Animate line drawing from top to bottom as scroll progresses
-      // Using scrub: 0.3 for smoother, more gradual animation per scroll tick
+      // Changed start to "top top" so the line drawing begins when the SVG enters the viewport top
+      // and completes when the bottom of the container reaches the top of the viewport (full line visible)
       gsap.to(path, {
         strokeDashoffset: 0,
         ease: "none",
         scrollTrigger: {
           trigger: containerRef.current,
-          start: "top center",
-          end: "bottom center",
-          scrub: 0.3, // Reduced for smoother line drawing
+          start: "top top",         // Starts drawing when container top hits viewport top
+          end: "bottom top",        // Completes when container bottom hits viewport top
+          scrub: 0.3,
           invalidateOnRefresh: true,
         }
       });
