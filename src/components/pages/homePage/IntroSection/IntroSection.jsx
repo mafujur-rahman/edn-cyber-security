@@ -15,6 +15,8 @@ const ProtectionShowcase = () => {
   const svgContainerRef = useRef(null);
   const ballRef = useRef(null);
   const glowBallRef = useRef(null);
+  
+  const followerDotRef = useRef(null);
 
   const cardRef1 = useRef(null);
   const cardRef2 = useRef(null);
@@ -36,13 +38,12 @@ const ProtectionShowcase = () => {
 
       const container = containerRef.current;
       const svgElement = svgContainerRef.current;
+      const followerDot = followerDotRef.current;
       
       const getCardRects = () => {
-        const containerRect = container.getBoundingClientRect();
         const svgRect = svgElement.getBoundingClientRect();
         
         return {
-          containerRect,
           svgRect,
           cards: [
             { ref: cardRef1, element: cardRef1.current, name: 'card1' },
@@ -57,6 +58,32 @@ const ProtectionShowcase = () => {
       };
 
       let metrics = getCardRects();
+
+      // Get exact ball position relative to the container
+      const getExactBallPosition = () => {
+        if (!ballRef.current) return null;
+        
+        const ballElement = ballRef.current;
+        const svgElement = ballElement.closest('svg');
+        if (!svgElement) return null;
+        
+        const cx = parseFloat(ballElement.getAttribute('cx'));
+        const cy = parseFloat(ballElement.getAttribute('cy'));
+        
+        const svgRect = svgElement.getBoundingClientRect();
+        const viewBox = svgElement.getAttribute('viewBox');
+        const viewBoxValues = viewBox ? viewBox.split(' ').map(Number) : [0, 0, 151, 2251];
+        const svgViewBoxWidth = viewBoxValues[2];
+        const svgViewBoxHeight = viewBoxValues[3];
+        
+        const scaleX = svgRect.width / svgViewBoxWidth;
+        const scaleY = svgRect.height / svgViewBoxHeight;
+        
+        const screenX = svgRect.left + (cx * scaleX);
+        const screenY = svgRect.top + (cy * scaleY);
+        
+        return { x: screenX, y: screenY };
+      };
 
       gsap.to(path, {
         strokeDashoffset: 0,
@@ -89,42 +116,71 @@ const ProtectionShowcase = () => {
               });
             }
 
-            const svgWidth = svgElement.offsetWidth || 150;
-            const svgHeight = svgElement.offsetHeight || 2251;
+            const ballPos = getExactBallPosition();
+            if (!ballPos) return;
             
-            // Get ball's actual position on screen
-            const ballScreenX = metrics.svgRect.left + (svgWidth / 2) - 75 + (currentX * (svgWidth / 151));
-            const ballScreenY = metrics.svgRect.top + (currentY * (svgHeight / 2251));
+            const ballScreenX = ballPos.x;
+            const ballScreenY = ballPos.y;
 
-            // Check each card - does the ball intersect it?
+            // Update follower dot with absolute positioning (scrolls with page)
+            if (followerDot) {
+              followerDot.style.left = `${ballScreenX}px`;
+              followerDot.style.top = `${ballScreenY + window.scrollY}px`;
+              followerDot.style.display = 'block';
+            }
+
+            // Check each card
             metrics.cards.forEach((card) => {
               const cardRect = card.rect;
               
-              // Simple intersection check - ball enters card area
-              const isInsideCard = (
-                ballScreenX >= cardRect.left - 20 &&
-                ballScreenX <= cardRect.right + 20 &&
-                ballScreenY >= cardRect.top - 20 &&
-                ballScreenY <= cardRect.bottom + 20
+              const isUnderCard = (
+                ballScreenX >= cardRect.left &&
+                ballScreenX <= cardRect.right &&
+                ballScreenY >= cardRect.top &&
+                ballScreenY <= cardRect.bottom
               );
               
-              if (isInsideCard) {
-                // Calculate distance from ball to card center for intensity
-                const cardCenterX = (cardRect.left + cardRect.right) / 2;
-                const cardCenterY = (cardRect.top + cardRect.bottom) / 2;
-                const distanceToCenter = Math.sqrt(
-                  Math.pow(ballScreenX - cardCenterX, 2) + 
-                  Math.pow(ballScreenY - cardCenterY, 2)
-                );
-                const maxDistance = 200;
-                const intensity = Math.max(0, 1 - (distanceToCenter / maxDistance));
+              if (isUnderCard) {
+                console.log(`✅ BALL EXACTLY UNDER ${card.name}!`);
                 
-                // Add glowing class to card
-                card.element.classList.add('card-glowing');
-                card.element.style.setProperty('--glow-intensity', intensity);
+                // Add visible glow to card
+                card.element.style.transition = 'all 0.1s ease';
+                card.element.style.boxShadow = '0 0 50px cyan, 0 0 100px #39f2a1';
+                card.element.style.border = '3px solid cyan';
+                card.element.style.transform = 'translateY(-5px)';
+                
+                // Add glow circle at exact position
+                const relativeX = ((ballScreenX - cardRect.left) / cardRect.width) * 100;
+                const relativeY = ((ballScreenY - cardRect.top) / cardRect.height) * 100;
+                
+                let glowCircle = card.element.querySelector('.exact-glow');
+                if (!glowCircle) {
+                  glowCircle = document.createElement('div');
+                  glowCircle.className = 'exact-glow';
+                  card.element.style.position = 'relative';
+                  card.element.appendChild(glowCircle);
+                }
+                glowCircle.style.cssText = `
+                  position: absolute;
+                  left: ${relativeX}%;
+                  top: ${relativeY}%;
+                  width: 120px;
+                  height: 120px;
+                  transform: translate(-50%, -50%);
+                  background: radial-gradient(circle, cyan 0%, #39f2a1 50%, transparent 100%);
+                  border-radius: 50%;
+                  pointer-events: none;
+                  z-index: 99999;
+                  filter: blur(10px);
+                  opacity: 0.9;
+                  animation: glowFlash 0.2s ease-out;
+                `;
               } else {
-                // Remove glow when ball leaves
-                card.element.classList.remove('card-glowing');
+                card.element.style.boxShadow = '';
+                card.element.style.border = '';
+                card.element.style.transform = '';
+                const glowCircle = card.element.querySelector('.exact-glow');
+                if (glowCircle) glowCircle.remove();
               }
             });
           }
@@ -163,7 +219,7 @@ const ProtectionShowcase = () => {
   }, []);
 
   return (
-    <div ref={containerRef} className="text-white relative py-0 overflow-x-clip bg-black">
+    <div ref={containerRef} className="text-white relative py-0 overflow-visible bg-black">
       <style jsx global>{`
         .image-card img {
           width: 100%;
@@ -171,40 +227,46 @@ const ProtectionShowcase = () => {
           object-fit: cover;
         }
         
-        /* Card background glow effect - appears when SVG ball enters the card */
-        .card-glowing {
-          position: relative;
-          transition: box-shadow 0.2s ease;
-          box-shadow: 0 0 calc(40px * var(--glow-intensity, 0)) 
-                      rgba(0, 229, 229, 0.6),
-                      0 0 calc(80px * var(--glow-intensity, 0)) 
-                      rgba(57, 242, 161, 0.4),
-                      0 0 calc(120px * var(--glow-intensity, 0)) 
-                      rgba(153, 255, 51, 0.2);
+        /* Follower dot - matches SVG ball position WITH scrolling */
+        .follower-dot {
+          position: absolute;
+          width: 16px;
+          height: 16px;
+          background: red;
+          border-radius: 50%;
+          z-index: 999999;
+          pointer-events: none;
+          transform: translate(-50%, -50%);
+          box-shadow: 0 0 20px red;
+          display: none;
         }
         
-        /* Inner glow effect on the card background */
-        .card-glowing::before {
+        .follower-dot::after {
           content: '';
           position: absolute;
-          inset: 0;
-          background: radial-gradient(circle at center,
-            rgba(0, 229, 229, 0.15) 0%,
-            rgba(57, 242, 161, 0.1) 30%,
-            transparent 70%
-          );
-          opacity: calc(var(--glow-intensity, 0) * 0.8);
-          pointer-events: none;
-          z-index: 1;
-          transition: opacity 0.15s ease;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 40px;
+          height: 40px;
+          background: radial-gradient(circle, rgba(255,0,0,0.5) 0%, transparent 100%);
+          border-radius: 50%;
         }
         
-        /* Keep content above the glow */
-        .card-glowing > * {
-          position: relative;
-          z-index: 2;
+        @keyframes glowFlash {
+          0% {
+            transform: translate(-50%, -50%) scale(0.3);
+            opacity: 0;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.9;
+          }
         }
       `}</style>
+
+      {/* Red dot that follows SVG ball exactly WITH SCROLLING */}
+      <div ref={followerDotRef} className="follower-dot"></div>
 
       <div className="relative z-30 pt-20 text-center">
         <div className="relative inline-block">
@@ -239,13 +301,14 @@ const ProtectionShowcase = () => {
               
               <radialGradient id="ballGradient" cx="50%" cy="50%" r="50%">
                 <stop offset="0%" stopColor="#ffffff" />
-                <stop offset="40%" stopColor="#39F2A1" />
+                <stop offset="30%" stopColor="#E5FF00" />
+                <stop offset="60%" stopColor="#39F2A1" />
                 <stop offset="100%" stopColor="#00E5E5" />
               </radialGradient>
               
               <radialGradient id="ballGlowGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#00E5E5" stopOpacity="0.8" />
-                <stop offset="40%" stopColor="#39F2A1" stopOpacity="0.3" />
+                <stop offset="0%" stopColor="#00E5E5" stopOpacity="0.9" />
+                <stop offset="40%" stopColor="#39F2A1" stopOpacity="0.5" />
                 <stop offset="100%" stopColor="#99FF33" stopOpacity="0" />
               </radialGradient>
               
@@ -256,15 +319,23 @@ const ProtectionShowcase = () => {
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
+              
+              <filter id="ballGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
 
-            <path d={pathData} stroke="#222" strokeWidth="1.5" fill="none" />
+            <path d={pathData} stroke="#1a1a1a" strokeWidth="2" fill="none" opacity="0.4" />
 
             <path
               ref={activeLineRef}
               d={pathData}
               stroke="url(#lineGradient)"
-              strokeWidth="2"
+              strokeWidth="3"
               fill="none"
               filter="url(#glow)"
               style={{ strokeDasharray: "1000", strokeDashoffset: "1000" }}
@@ -274,42 +345,44 @@ const ProtectionShowcase = () => {
               ref={glowBallRef}
               cx="75.9813"
               cy="0"
-              r="40"
+              r="60"
               fill="url(#ballGlowGradient)"
+              filter="url(#ballGlow)"
               style={{ opacity: 0 }}
             />
 
-            {/* THIS IS THE SVG CIRCLE BALL - it creates the glow on cards */}
             <circle
               ref={ballRef}
               cx="75.9813"
               cy="0"
-              r="8"
+              r="16"
               fill="url(#ballGradient)"
+              filter="url(#ballGlow)"
               style={{ opacity: 0 }}
             />
           </svg>
         </div>
       </div>
 
-      {/* CARDS - they glow when the SVG ball enters them */}
+      {/* CARDS */}
       <div className="max-w-7xl mx-auto relative z-20 overflow-visible">
 
         {/* SECTION 1 */}
         <div className="relative min-h-[850px] h-auto md:h-[850px]">
-          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[650px] z-30 w-auto max-w-[90vw] sm:max-w-none">
+          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[650px] w-auto max-w-[90vw] sm:max-w-none">
             <ImageCard 
               src="/images/home/card-1.webp" 
               alt="Credential leak visualization"
               rotation="-rotate-[12deg]"
               width="w-[90vw] sm:w-[440px]"
               height="h-auto sm:h-40 min-h-[160px]"
+              cardRef={cardRef1}
             />
           </div>
 
-          <div className="reveal-card absolute left-[5%] sm:left-[48%] top-[510px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl z-30">
+          <div className="reveal-card absolute left-[5%] sm:left-[48%] top-[510px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl">
             <GlassCard
-              cardRef={cardRef1}
+              cardRef={cardRef2}
               title="Phishing as a defense"
               desc="MoK.N Baits are defensive phishing pages that lure attackers into revealing compromised credentials before they're used."
             />
@@ -318,41 +391,43 @@ const ProtectionShowcase = () => {
 
         {/* SECTION 2 */}
         <div className="relative min-h-[900px] h-auto md:h-[900px]">
-          <div className="reveal-card absolute left-[5%] sm:right-[48%] sm:left-auto top-[300px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl z-30">
+          <div className="reveal-card absolute left-[5%] sm:right-[48%] sm:left-auto top-[300px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl">
             <GlassCard
-              cardRef={cardRef2}
+              cardRef={cardRef3}
               side="left"
               title="Only valid credentials"
               desc="Millions of credentials may be tested. Our Baits filter the noise and alert only when valid ones are used against your systems."
             />
           </div>
 
-          <div className="reveal-card absolute left-[5%] sm:right-[8%] sm:left-auto top-[380px] w-[90vw] sm:w-auto z-30">
+          <div className="reveal-card absolute left-[5%] sm:right-[8%] sm:left-auto top-[380px] w-[90vw] sm:w-auto">
             <ImageCard 
               src="/images/home/c2.webp"
               alt="Valid credential alert visualization"
               rotation="-rotate-[3deg]"
               width="w-[90vw] sm:w-[420px]"
               height="h-auto sm:h-52 min-h-[200px]"
+              cardRef={cardRef4}
             />
           </div>
         </div>
 
         {/* SECTION 3 */}
         <div className="relative min-h-[850px] h-auto md:h-[850px]">
-          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[0px] z-30 w-auto max-w-[90vw] sm:max-w-none">
+          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[0px] w-auto max-w-[90vw] sm:max-w-none">
             <ImageCard 
               src="/images/home/c3.webp"
               alt="Attack overview chart visualization"
               rotation="rotate-0"
               width="w-[90vw] sm:w-[450px]"
               height="h-auto sm:h-64 min-h-[280px]"
+              cardRef={cardRef1}
             />
           </div>
 
-          <div className="reveal-card absolute left-[5%] sm:left-[48%] -top-[80px] top-[-60px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl z-30">
+          <div className="reveal-card absolute left-[5%] sm:left-[48%] -top-[80px] top-[-60px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl">
             <GlassCard
-              cardRef={cardRef3}
+              cardRef={cardRef2}
               title="Tailored Threat intelligence"
               desc="Monitor real attacker activity targeting your environment. No generic feeds, only insights tied to your users, systems, and domains."
             />
@@ -360,9 +435,9 @@ const ProtectionShowcase = () => {
         </div>
 
         {/* SECTION 4 */}
-        <div className="reveal-card flex justify-center pb-16 sm:pb-40 px-4 sm:px-6 -mt-[300px] sm:-mt-[400px] relative z-30">
+        <div className="reveal-card flex justify-center pb-16 sm:pb-40 px-4 sm:px-6 -mt-[300px] sm:-mt-[400px]">
           <div 
-            ref={cardRef4}
+            ref={cardRef3}
             className="w-full max-w-6xl bg-zinc-950/80 border border-white/10 p-6 sm:p-12 md:p-24 text-center relative shadow-2xl backdrop-blur-md rounded-sm"
           >
             <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay rounded-sm" />
@@ -396,19 +471,22 @@ const ProtectionShowcase = () => {
   );
 };
 
-const ImageCard = ({ src, alt, rotation = "", width = "w-96", height = "h-40" }) => (
-  <div className={`${width} ${height} relative ${rotation} overflow-hidden image-card rounded-sm bg-black/50`}>
-    <img src={src} alt={alt} className="w-full h-full object-cover opacity-90" />
+const ImageCard = ({ src, alt, rotation = "", width = "w-96", height = "h-40", cardRef }) => (
+  <div 
+    ref={cardRef}
+    className={`${width} ${height} relative ${rotation} overflow-visible image-card rounded-sm bg-gradient-to-br from-zinc-900 to-black border border-white/20 shadow-2xl`}
+  >
+    <img src={src} alt={alt} className="w-full h-full object-cover opacity-80 rounded-sm" />
   </div>
 );
 
 const GlassCard = ({ cardRef, title, desc, side = "left" }) => (
   <div 
     ref={cardRef}
-    className={`relative p-6 sm:p-8 md:p-10 bg-zinc-950 border border-white/10 backdrop-blur-xl rounded-sm min-h-[280px] sm:min-h-[320px] flex flex-col justify-center ${side === 'right' ? 'text-right items-end' : 'text-left items-start'} shadow-xl w-full h-full overflow-hidden z-30`}
+    className={`relative p-6 sm:p-8 md:p-10 bg-gradient-to-br from-zinc-900/90 to-black/90 border border-white/20 backdrop-blur-sm rounded-sm min-h-[280px] sm:min-h-[320px] flex flex-col justify-center ${side === 'right' ? 'text-right items-end' : 'text-left items-start'} shadow-2xl w-full h-full overflow-visible`}
   >
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-4 sm:mb-6 relative z-10">
-      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-zinc-900 border border-white/10 rounded-lg flex items-center justify-center shadow-2xl shrink-0">
+      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-zinc-900 border border-white/20 rounded-lg flex items-center justify-center shadow-2xl shrink-0">
         <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>

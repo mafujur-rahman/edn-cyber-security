@@ -1,164 +1,124 @@
 // components/GradientButton.jsx
 "use client";
-import React, { useRef, useState, forwardRef, useEffect } from 'react';
+import React, { useRef, forwardRef, useEffect } from 'react';
 import { gsap } from 'gsap';
-
-const RotatingLine = ({ rectRef, width, height }) => {
-    if (width === 0 || height === 0) return null;
-
-    return (
-        <svg
-            className="absolute inset-0 pointer-events-none"
-            style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
-        >
-            <defs>
-                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                    <feMerge>
-                        <feMergeNode in="coloredBlur" />
-                        <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                </filter>
-                <linearGradient id="borderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#00E5E5" />
-                    <stop offset="100%" stopColor="#99FF33" />
-                </linearGradient>
-            </defs>
-
-            <rect
-                ref={rectRef}
-                x="2" y="2"
-                width={width - 4}
-                height={height - 4}
-                fill="none"
-                stroke="url(#borderGradient)"
-                strokeWidth="2.5"
-                strokeLinecap="butt"
-                filter="url(#glow)"
-                style={{ opacity: 1 }}
-            />
-        </svg>
-    );
-};
 
 export const GradientButton = forwardRef(({
     children,
     className = "",
     onClick,
-    disabled = false,
-    type = "button",
-    variant = "primary",
-    animateBorder = true,
+    href = "/contact",
 }, externalRef) => {
-    const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
-    const [isHovered, setIsHovered] = useState(false);
-    const [dimensions, setDimensions] = useState({ w: 0, h: 0 });
     const internalBtnRef = useRef(null);
-    const rectRef = useRef(null);
-    const animationRef = useRef(null);
+    const hoverLightRef = useRef(null);
+    const borderRotationRef = useRef(null);
 
     const btnRef = externalRef || internalBtnRef;
 
     useEffect(() => {
-        if (!animateBorder) return;
+        const button = btnRef.current;
+        const hoverLight = hoverLightRef.current;
+        const borderRotation = borderRotationRef.current;
 
-        const updateDimensions = () => {
-            if (btnRef.current) {
-                setDimensions({
-                    w: btnRef.current.clientWidth,
-                    h: btnRef.current.clientHeight
-                });
-            }
-        };
+        if (!button) return;
 
-        updateDimensions();
-        window.addEventListener('resize', updateDimensions);
+        // 1. INFINITE BORDER ROTATION
+        const rotateTween = gsap.to(borderRotation, {
+            rotation: 360,
+            duration: 4, // Speed control (lower = faster)
+            repeat: -1,
+            ease: "none"
+        });
 
-        return () => window.removeEventListener('resize', updateDimensions);
-    }, [animateBorder, btnRef]);
+        // 2. MOUSE TRACKING (Webflow button-hover_light effect)
+        const handleMouseMove = (e) => {
+            const rect = button.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
 
-    useEffect(() => {
-        if (!animateBorder || dimensions.w === 0 || dimensions.h === 0) return;
-
-        const startAnimation = () => {
-            if (!rectRef.current) return;
-
-            if (animationRef.current) {
-                animationRef.current.kill();
-            }
-
-            const width = dimensions.w - 4;
-            const height = dimensions.h - 4;
-            const length = 2 * (width + height);
-            const dashLength = length * 0.15;
-            const gapLength = length * 0.85;
-
-            gsap.set(rectRef.current, {
-                strokeDasharray: `${dashLength} ${gapLength}`,
-                strokeDashoffset: 0
-            });
-
-            animationRef.current = gsap.to(rectRef.current, {
-                strokeDashoffset: -length,
-                duration: 8,
-                repeat: -1,
-                ease: "none",
+            gsap.to(hoverLight, {
+                x: x,
+                y: y,
+                duration: 0.2,
+                ease: "power2.out"
             });
         };
 
-        startAnimation();
+        const handleMouseEnter = () => {
+            gsap.to(hoverLight, {
+                opacity: 1,
+                duration: 0.3,
+                ease: "power2.out"
+            });
+        };
+
+        const handleMouseLeave = () => {
+            gsap.to(hoverLight, {
+                opacity: 0,
+                duration: 0.3,
+                ease: "power2.out"
+            });
+        };
+
+        button.addEventListener("mousemove", handleMouseMove);
+        button.addEventListener("mouseenter", handleMouseEnter);
+        button.addEventListener("mouseleave", handleMouseLeave);
 
         return () => {
-            if (animationRef.current) {
-                animationRef.current.kill();
-            }
+            rotateTween.kill();
+            button.removeEventListener("mousemove", handleMouseMove);
+            button.removeEventListener("mouseenter", handleMouseEnter);
+            button.removeEventListener("mouseleave", handleMouseLeave);
         };
-    }, [dimensions, animateBorder]);
-
-    const handleMouseMove = (e) => {
-        if (!btnRef.current) return;
-        const rect = btnRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        setMousePos({ x, y });
-    };
-
-    const gradientStyles = {
-        primary: {
-            background: isHovered
-                ? `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(9, 229, 229, 0.3), rgba(168, 255, 87, 0.15), black 80%)`
-                : 'black',
-        },
-        secondary: {
-            background: isHovered
-                ? `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255, 255, 255, 0.2), rgba(168, 255, 87, 0.1), transparent 80%)`
-                : 'transparent',
-            border: isHovered ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
-        }
-    };
+    }, [btnRef]);
 
     return (
-        <button
-            ref={(el) => {
-                btnRef.current = el;
-                internalBtnRef.current = el;
-            }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onMouseMove={handleMouseMove}
+        <a
+            href={href}
+            ref={btnRef}
             onClick={onClick}
-            disabled={disabled}
-            type={type}
-            className={`relative transition-all duration-300 overflow-hidden ${className}`}
-            style={gradientStyles[variant]}
+            className={`button-cta w-inline-block relative inline-flex items-center justify-center px-8 py-3.5 rounded-md bg-[#000000] text-white no-underline overflow-hidden group ${className}`}
+            style={{ isolation: 'isolate' }}
         >
-            {animateBorder && (
-                <RotatingLine rectRef={rectRef} width={dimensions.w} height={dimensions.h} />
-            )}
-            <span className="relative z-10 inline-flex items-center gap-2">
-                {children}
-            </span>
-        </button>
+            {/* THE MASK CONTAINER (Configured with rounded-md / 6px geometry) */}
+            <div
+                className="absolute inset-0 rounded-md pointer-events-none overflow-hidden"
+                style={{
+                    padding: '1.5px', // Exact thickness of the border line
+                    borderRadius: '6px', // Matches Tailwind's rounded-md
+                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                    WebkitMaskComposite: 'xor',
+                    maskComposite: 'exclude',
+                    zIndex: 2
+                }}
+            >
+                {/* THE ROTATING GRADIENT - Updated colors */}
+                <div
+                    ref={borderRotationRef}
+                    className="absolute inset-[-150%] origin-center"
+                    style={{
+                        background: 'conic-gradient(from 0deg, transparent 60%, #00E5E5 75%, #99FF33 90%, transparent 100%)',
+                    }}
+                />
+            </div>
+
+            {/* THE HOVER LIGHT OVERLAY - Updated to match gradient colors */}
+            <div
+                ref={hoverLightRef}
+                className="button-hover_light absolute top-0 left-0 w-40 h-40 -translate-x-1/2 -translate-y-1/2 pointer-events-none rounded-full opacity-0 mix-blend-screen transition-opacity duration-300"
+                style={{
+                    background: 'radial-gradient(circle, rgba(0, 229, 229, 0.15) 0%, rgba(153, 255, 51, 0.1) 50%, transparent 75%)',
+                    transformStyle: 'preserve-3d',
+                    willChange: 'transform',
+                    zIndex: 1
+                }}
+            />
+
+            {/* BUTTON TEXT */}
+            <div className="button-m z-index-1 relative font-medium tracking-wide text-sm z-10 select-none pointer-events-none">
+                {children || "Contact us"}
+            </div>
+        </a>
     );
 });
 
