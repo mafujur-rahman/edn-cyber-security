@@ -15,13 +15,13 @@ const ProtectionShowcase = () => {
   const svgContainerRef = useRef(null);
   const ballRef = useRef(null);
   const glowBallRef = useRef(null);
-  
-  const followerDotRef = useRef(null);
 
   const cardRef1 = useRef(null);
   const cardRef2 = useRef(null);
   const cardRef3 = useRef(null);
   const cardRef4 = useRef(null);
+  
+  const finalCardRef = useRef(null);
 
   const pathData = "M75.9813 0V429.095C77.5097 446.599 79.7002 471.868 93.3704 507.113C169.604 703.656 173.69 780.674 75.9813 1030.73C-26.6131 1293.29 -21.3403 1360.8 75.9813 1595.85C170.818 1824.91 172.668 1940.93 86.2012 2162.98C78.9349 2188.8 72.8987 2220.99 75.9813 2250";
 
@@ -38,8 +38,7 @@ const ProtectionShowcase = () => {
 
       const container = containerRef.current;
       const svgElement = svgContainerRef.current;
-      const followerDot = followerDotRef.current;
-      
+
       const getCardRects = () => {
         const svgRect = svgElement.getBoundingClientRect();
         
@@ -59,30 +58,10 @@ const ProtectionShowcase = () => {
 
       let metrics = getCardRects();
 
-      // Get exact ball position relative to the container
-      const getExactBallPosition = () => {
-        if (!ballRef.current) return null;
-        
-        const ballElement = ballRef.current;
-        const svgElement = ballElement.closest('svg');
-        if (!svgElement) return null;
-        
-        const cx = parseFloat(ballElement.getAttribute('cx'));
-        const cy = parseFloat(ballElement.getAttribute('cy'));
-        
-        const svgRect = svgElement.getBoundingClientRect();
-        const viewBox = svgElement.getAttribute('viewBox');
-        const viewBoxValues = viewBox ? viewBox.split(' ').map(Number) : [0, 0, 151, 2251];
-        const svgViewBoxWidth = viewBoxValues[2];
-        const svgViewBoxHeight = viewBoxValues[3];
-        
-        const scaleX = svgRect.width / svgViewBoxWidth;
-        const scaleY = svgRect.height / svgViewBoxHeight;
-        
-        const screenX = svgRect.left + (cx * scaleX);
-        const screenY = svgRect.top + (cy * scaleY);
-        
-        return { x: screenX, y: screenY };
+      const updateBallPosition = () => {
+        if (!ball) return null;
+        const rect = ball.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
       };
 
       gsap.to(path, {
@@ -116,71 +95,82 @@ const ProtectionShowcase = () => {
               });
             }
 
-            const ballPos = getExactBallPosition();
+            const ballPos = updateBallPosition();
             if (!ballPos) return;
             
-            const ballScreenX = ballPos.x;
-            const ballScreenY = ballPos.y;
+            if (finalCardRef.current) {
+              const finalRect = finalCardRef.current.getBoundingClientRect();
+              
+              const triggerDistance = 250; 
+              const distanceToTop = ballPos.y - finalRect.top;
 
-            // Update follower dot with absolute positioning (scrolls with page)
-            if (followerDot) {
-              followerDot.style.left = `${ballScreenX}px`;
-              followerDot.style.top = `${ballScreenY + window.scrollY}px`;
-              followerDot.style.display = 'block';
+              if (
+                ballPos.x >= finalRect.left - 100 &&
+                ballPos.x <= finalRect.right + 100 &&
+                distanceToTop >= -triggerDistance && 
+                ballPos.y <= finalRect.bottom
+              ) {
+                let glowProgress = 0;
+                if (distanceToTop < 0) {
+                  glowProgress = (triggerDistance + distanceToTop) / triggerDistance;
+                } else {
+                  glowProgress = 1;
+                }
+
+                finalCardRef.current.style.setProperty('--glow-opacity', glowProgress.toFixed(3));
+                finalCardRef.current.style.setProperty('--glow-scale', (0.5 + glowProgress * 0.5).toFixed(3));
+                finalCardRef.current.style.setProperty('--border-glow', (glowProgress * 0.3).toFixed(3));
+              } else {
+                finalCardRef.current.style.setProperty('--glow-opacity', '0');
+                finalCardRef.current.style.setProperty('--glow-scale', '0.5');
+                finalCardRef.current.style.setProperty('--border-glow', '0');
+              }
             }
 
-            // Check each card
             metrics.cards.forEach((card) => {
               const cardRect = card.rect;
               
               const isUnderCard = (
-                ballScreenX >= cardRect.left &&
-                ballScreenX <= cardRect.right &&
-                ballScreenY >= cardRect.top &&
-                ballScreenY <= cardRect.bottom
+                ballPos.x >= cardRect.left &&
+                ballPos.x <= cardRect.right &&
+                ballPos.y >= cardRect.top &&
+                ballPos.y <= cardRect.bottom
               );
               
               if (isUnderCard) {
-                console.log(`✅ BALL EXACTLY UNDER ${card.name}!`);
-                
-                // Add visible glow to card
                 card.element.style.transition = 'all 0.1s ease';
-                card.element.style.boxShadow = '0 0 50px cyan, 0 0 100px #39f2a1';
-                card.element.style.border = '3px solid cyan';
-                card.element.style.transform = 'translateY(-5px)';
+                card.element.style.boxShadow = '0 0 30px cyan, 0 0 60px #39f2a1';
+                card.element.style.border = '2px solid cyan';
                 
-                // Add glow circle at exact position
-                const relativeX = ((ballScreenX - cardRect.left) / cardRect.width) * 100;
-                const relativeY = ((ballScreenY - cardRect.top) / cardRect.height) * 100;
+                const relativeX = ((ballPos.x - cardRect.left) / cardRect.width) * 100;
+                const relativeY = ((ballPos.y - cardRect.top) / cardRect.height) * 100;
                 
-                let glowCircle = card.element.querySelector('.exact-glow');
-                if (!glowCircle) {
-                  glowCircle = document.createElement('div');
-                  glowCircle.className = 'exact-glow';
+                let glowDiv = card.element.querySelector('.card-glow-div');
+                if (!glowDiv) {
+                  glowDiv = document.createElement('div');
+                  glowDiv.className = 'card-glow-div';
                   card.element.style.position = 'relative';
-                  card.element.appendChild(glowCircle);
+                  card.element.appendChild(glowDiv);
                 }
-                glowCircle.style.cssText = `
+                glowDiv.style.cssText = `
                   position: absolute;
                   left: ${relativeX}%;
                   top: ${relativeY}%;
-                  width: 120px;
-                  height: 120px;
+                  width: 100px;
+                  height: 100px;
                   transform: translate(-50%, -50%);
                   background: radial-gradient(circle, cyan 0%, #39f2a1 50%, transparent 100%);
                   border-radius: 50%;
                   pointer-events: none;
-                  z-index: 99999;
-                  filter: blur(10px);
-                  opacity: 0.9;
-                  animation: glowFlash 0.2s ease-out;
+                  z-index: 9999;
+                  filter: blur(8px);
+                  opacity: 0.8;
                 `;
               } else {
                 card.element.style.boxShadow = '';
                 card.element.style.border = '';
-                card.element.style.transform = '';
-                const glowCircle = card.element.querySelector('.exact-glow');
-                if (glowCircle) glowCircle.remove();
+                const glowDiv = card.element.querySelector('.card-glow-div');
+                if (glowDiv) glowDiv.remove();
               }
             });
           }
@@ -226,47 +216,13 @@ const ProtectionShowcase = () => {
           height: 100%;
           object-fit: cover;
         }
-        
-        /* Follower dot - matches SVG ball position WITH scrolling */
-        .follower-dot {
-          position: absolute;
-          width: 16px;
-          height: 16px;
-          background: red;
-          border-radius: 50%;
-          z-index: 999999;
-          pointer-events: none;
-          transform: translate(-50%, -50%);
-          box-shadow: 0 0 20px red;
-          display: none;
-        }
-        
-        .follower-dot::after {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 40px;
-          height: 40px;
-          background: radial-gradient(circle, rgba(255,0,0,0.5) 0%, transparent 100%);
-          border-radius: 50%;
-        }
-        
-        @keyframes glowFlash {
-          0% {
-            transform: translate(-50%, -50%) scale(0.3);
-            opacity: 0;
-          }
-          100% {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 0.9;
-          }
+        .dynamic-glow-card {
+          --glow-opacity: 0;
+          --glow-scale: 0.5;
+          --border-glow: 0;
+          transition: border-color 0.3s ease;
         }
       `}</style>
-
-      {/* Red dot that follows SVG ball exactly WITH SCROLLING */}
-      <div ref={followerDotRef} className="follower-dot"></div>
 
       <div className="relative z-30 pt-20 text-center">
         <div className="relative inline-block">
@@ -434,17 +390,46 @@ const ProtectionShowcase = () => {
           </div>
         </div>
 
-        {/* SECTION 4 */}
+        {/* SECTION 4 (FINAL CTA CARD) - With properly visible corner squares */}
         <div className="reveal-card flex justify-center pb-16 sm:pb-40 px-4 sm:px-6 -mt-[300px] sm:-mt-[400px]">
           <div 
-            ref={cardRef3}
-            className="w-full max-w-6xl bg-zinc-950/80 border border-white/10 p-6 sm:p-12 md:p-24 text-center relative shadow-2xl backdrop-blur-md rounded-sm"
+            ref={finalCardRef}
+            className="dynamic-glow-card w-full max-w-6xl bg-zinc-950/80 border border-white/10 p-6 sm:p-12 md:p-24 text-center relative shadow-2xl backdrop-blur-md rounded-sm overflow-visible"
+            style={{
+              borderTopColor: 'rgba(0, 229, 229, var(--border-glow, 0))',
+              borderLeftColor: 'rgba(57, 242, 161, calc(var(--border-glow, 0) * 0.5))',
+              borderRightColor: 'rgba(57, 242, 161, calc(var(--border-glow, 0) * 0.5))',
+              borderBottomColor: 'rgba(153, 255, 51, var(--border-glow, 0))'
+            }}
           >
+            {/* Glow effect covering half the card height */}
+            <div 
+              className="absolute pointer-events-none top-0 left-0 right-0 transition-transform duration-100 ease-out opacity-0 blur-3xl mix-blend-screen"
+              style={{
+                background: 'radial-gradient(ellipse at 50% 0%, rgba(0, 229, 229, 0.5) 0%, rgba(57, 242, 161, 0.2) 50%, transparent 80%)',
+                height: '50%',
+                opacity: 'var(--glow-opacity)',
+                transform: 'scaleY(var(--glow-scale))',
+                transformOrigin: 'top center'
+              }}
+            />
+
+            {/* Smooth edge horizon accent */}
+            <div 
+              className="absolute top-0 left-1/6 right-1/6 h-[2px] transition-opacity duration-200 pointer-events-none"
+              style={{
+                background: 'linear-gradient(90deg, transparent, #00E5E5 20%, #99FF33 80%, transparent)',
+                opacity: 'var(--glow-opacity)'
+              }}
+            />
+
             <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay rounded-sm" />
-            <div className="absolute -top-1.5 -left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45" />
-            <div className="absolute -top-1.5 -right-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45" />
-            <div className="absolute -bottom-1.5 -left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45" />
-            <div className="absolute -bottom-1.5 -right-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45" />
+            
+            {/* Corner squares - fully visible outside the card */}
+            <div className="absolute -top-[2px] -left-[2px] w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white rotate-45 z-20" />
+            <div className="absolute -top-[2px] -right-[2px] w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white rotate-45 z-20" />
+            <div className="absolute -bottom-[2px] -left-[2px] w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white rotate-45 z-20" />
+            <div className="absolute -bottom-[2px] -right-[2px] w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white rotate-45 z-20" />
 
             <div className="relative z-10">
               <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 tracking-tight text-white leading-tight">
