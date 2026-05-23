@@ -253,8 +253,8 @@ const EdnAbout = () => {
       <p className={`text-sm uppercase tracking-widest ${inverted ? 'text-black/60' : 'text-white/50'}`}>
         {spec.desc}
       </p>
-      <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-[1px] h-4 ${inverted ? 'bg-black' : 'bg-[#A8FF57]'}`} />
-      <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] h-4 ${inverted ? 'bg-black' : 'bg-[#A8FF57]'}`} />
+      <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-[1px] h-4 ${inverted ? 'bg-black' : 'bg-[#99FF33]'}`} />
+      <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] h-4 ${inverted ? 'bg-black' : 'bg-[#99FF33]'}`} />
     </div>
   );
 
@@ -389,7 +389,7 @@ const EdnAbout = () => {
 
         <div 
           ref={techMaskRef}
-          className="absolute inset-0 bg-[#A8FF57] flex items-center justify-center z-20 pointer-events-none"
+          className="absolute inset-0 bg-[#99FF33] flex items-center justify-center z-20 pointer-events-none"
           style={{ clipPath: "circle(0% at 50% 50%)", WebkitClipPath: "circle(0% at 50% 50%)" }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-7xl p-6 md:p-20">
@@ -403,7 +403,7 @@ const EdnAbout = () => {
 
         <div className="absolute bottom-8 right-8 z-30 flex items-center gap-4">
           <span className="text-[10px] uppercase tracking-[0.4em] text-white/40">Scroll to Breach</span>
-          <div className="w-12 h-[1px] bg-[#A8FF57]" />
+          <div className="w-12 h-[1px] bg-[#99FF33]" />
         </div>
       </div>
     </div>

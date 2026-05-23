@@ -161,7 +161,7 @@ export default function EdnStatistics() {
           {/* Title Box - Using character-by-character reveal component */}
           <div 
             ref={titleContainerRef}
-            className="md:w-[35%] py-24 flex items-center bg-transparent border-r border-white/10 relative px-12"
+            className="md:w-[35%] py-16 flex items-center bg-transparent border-r border-white/10 relative px-12"
           >
             <WordRevealText 
               text="Why EDN?"
@@ -226,12 +226,9 @@ export default function EdnStatistics() {
                       ref={el => numbersRef.current[idx] = el}
                       className="flex items-baseline opacity-0"
                     >
-                      <span className="text-6xl font-black text-white tracking-tighter whitespace-nowrap">
-                        {numericValue}
+                      <span className="text-5xl font-black text-white tracking-tighter whitespace-nowrap">
+                        {numericValue}+
                       </span>
-                      {hasPlus && (
-                        <span className="text-2xl font-light text-white/30 ml-1">+</span>
-                      )}
                     </div>
                   </div>
                   

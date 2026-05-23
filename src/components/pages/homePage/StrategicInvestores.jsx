@@ -63,19 +63,19 @@ export default function StrategicInvestors() {
       console.log("Animation already triggered or gradient ref missing");
       return;
     }
-    
+
     console.log("Triggering gradient animation");
     animationTriggeredRef.current = true;
-    
+
     // Kill any existing animations on this element
     gsap.killTweensOf(gradientRef.current);
-    
+
     // Set initial position
     gsap.set(gradientRef.current, {
       x: "-100%",
       opacity: 1,
     });
-    
+
     // Animate
     gsap.to(gradientRef.current, {
       x: "100%",
@@ -96,16 +96,16 @@ export default function StrategicInvestors() {
   useEffect(() => {
     // Reset animation trigger when component mounts
     animationTriggeredRef.current = false;
-    
+
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
       if (!cardsContainerRef.current) {
         console.log("Cards container ref not found");
         return;
       }
-      
+
       console.log("Setting up ScrollTrigger for Strategic Investors");
-      
+
       // Create ScrollTrigger
       const st = ScrollTrigger.create({
         trigger: cardsContainerRef.current,
@@ -120,10 +120,10 @@ export default function StrategicInvestors() {
         },
         toggleActions: "play none none none",
       });
-      
+
       // Force ScrollTrigger to refresh and check current position
       ScrollTrigger.refresh();
-      
+
       // Manually check if already in view
       const checkImmediate = () => {
         if (!cardsContainerRef.current) return;
@@ -131,22 +131,22 @@ export default function StrategicInvestors() {
         const windowHeight = window.innerHeight;
         const isInView = rect.top < windowHeight * 0.8 && rect.bottom > 0;
         console.log("Manual check - is in view:", isInView, "rect.top:", rect.top, "trigger point:", windowHeight * 0.8);
-        
+
         if (isInView && !animationTriggeredRef.current) {
           console.log("Already in view, triggering immediately");
           triggerAnimation();
         }
       };
-      
+
       // Run immediate check
       checkImmediate();
-      
+
       // Also check after a short delay
       const delayTimer = setTimeout(checkImmediate, 500);
-      
+
       // Check on load
       window.addEventListener('load', checkImmediate);
-      
+
       // Cleanup
       return () => {
         clearTimeout(timer);
@@ -155,7 +155,7 @@ export default function StrategicInvestors() {
         if (st) st.kill();
       };
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -243,9 +243,8 @@ export default function StrategicInvestors() {
               {investors.map((investor, idx) => (
                 <div
                   key={idx}
-                  className={`relative flex-1 flex items-center justify-center py-10 md:py-0 px-6 z-20 ${
-                    idx < investors.length - 1 ? "border-r border-white/[0.08]" : ""
-                  }`}
+                  className={`relative flex-1 flex items-center justify-center py-10 md:py-0 px-6 z-20 ${idx < investors.length - 1 ? "border-r border-white/[0.08]" : ""
+                    }`}
                 >
                   <Image
                     src={investor.logo}

@@ -61,7 +61,7 @@ export default function CustomerLogoSection() {
           {/* White text stays white */}
           <span className="relative z-10 text-5xl md:text-6xl font-black text-white tracking-tighter"
             style={{
-              textShadow: '0 0 1rem #09E5E5, 0 0 3rem #8FEA3D',
+              textShadow: '0 0 1rem #00E5E5, 0 0 3rem #8FEA3D',
             }}
           >
             $480 billion.

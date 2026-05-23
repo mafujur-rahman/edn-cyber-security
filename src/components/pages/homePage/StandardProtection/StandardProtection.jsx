@@ -290,15 +290,15 @@ const StandardProtection = () => {
 
                     <h2 className="text-2xl md:text-[42px] font-light tracking-widest uppercase relative z-10">
                         <div className="absolute inset-0 -z-10 m-auto w-[90%] h-[60%] blur-[40px] md:blur-[60px] opacity-40"
-                            style={{ background: 'linear-gradient(90deg, #09E5E5, #A8FF57)' }} />
+                            style={{ background: 'linear-gradient(90deg, #00E5E5, #99FF33)' }} />
                         HOW DO STANDARD PROTECTION<br className="hidden md:block" /> METHODS FALL SHORT?
 
                         <div ref={verticalLineContainerRef} className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center"
                             style={{ top: 'calc(100% + 20px)', zIndex: 15, transition: 'opacity 0.3s' }}>
-                            <div ref={lineRef} style={{ width: '2px', background: 'linear-gradient(180deg, #09E5E5, #A8FF57, #09E5E5)', height: 'calc(100vh + 600px)', borderRadius: '2px', position: 'relative' }}>
+                            <div ref={lineRef} style={{ width: '2px', background: 'linear-gradient(180deg, #00E5E5, #99FF33, #00E5E5)', height: 'calc(100vh + 600px)', borderRadius: '2px', position: 'relative' }}>
                                 <div ref={circleRef} className="absolute" style={{ top: '-16px', left: '50%', transform: 'translateX(-50%)', willChange: 'transform, opacity', zIndex: 25 }}>
-                                    <div className="rounded-full absolute" style={{ width: '60px', height: '60px', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'linear-gradient(135deg, #09E5E5, #A8FF57)', filter: 'blur(16px)', opacity: 0.8, zIndex: 1 }} />
-                                    <div className="rounded-full relative" style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #09E5E5, #A8FF57)', filter: 'blur(4px)', boxShadow: '0 0 30px rgba(9,229,229,0.6)', border: '1px solid rgba(255,255,255,0.2)', zIndex: 3 }} />
+                                    <div className="rounded-full absolute" style={{ width: '60px', height: '60px', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'linear-gradient(135deg, #00E5E5, #99FF33)', filter: 'blur(16px)', opacity: 0.8, zIndex: 1 }} />
+                                    <div className="rounded-full relative" style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #00E5E5, #99FF33)', filter: 'blur(4px)', boxShadow: '0 0 30px rgba(9,229,229,0.6)', border: '1px solid rgba(255,255,255,0.2)', zIndex: 3 }} />
                                 </div>
                             </div>
                         </div>
@@ -345,7 +345,7 @@ const StandardProtection = () => {
                                         ref={el => cardTopBorderRefs.current[idx] = el}
                                         className="absolute -top-[3px] left-0 h-[4px] pointer-events-none z-10"
                                         style={{
-                                            background: 'linear-gradient(90deg, transparent, #09E5E5, #A8FF57, #09E5E5, transparent)',
+                                            background: 'linear-gradient(90deg, transparent, #00E5E5, #99FF33, #00E5E5, transparent)',
                                             filter: 'blur(6px)',
                                             opacity: 0,
                                             width: '0%'
@@ -365,7 +365,7 @@ const StandardProtection = () => {
                                         ref={el => cardBottomBorderRefs.current[idx] = el}
                                         className="absolute -bottom-[3px] left-0 h-[4px] pointer-events-none z-10"
                                         style={{
-                                            background: 'linear-gradient(90deg, transparent, #09E5E5, #A8FF57, #09E5E5, transparent)',
+                                            background: 'linear-gradient(90deg, transparent, #00E5E5, #99FF33, #00E5E5, transparent)',
                                             filter: 'blur(6px)',
                                             opacity: 0,
                                             width: '0%'
@@ -405,7 +405,7 @@ const StandardProtection = () => {
                         {/* Top border glow - always visible on CTA */}
                         <div className="absolute -top-[3px] left-0 w-full h-[4px] pointer-events-none z-10"
                             style={{
-                                background: 'linear-gradient(90deg, transparent, #09E5E5, #A8FF57, #09E5E5, transparent)',
+                                background: 'linear-gradient(90deg, transparent, #00E5E5, #99FF33, #00E5E5, transparent)',
                                 filter: 'blur(6px)',
                                 opacity: 1,
                             }}

@@ -4,7 +4,6 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import { GradientButton } from "@/components/utils/GradiantButton";
 
-// Register ScrollTrigger
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -14,50 +13,138 @@ const ProtectionShowcase = () => {
   const activeLineRef = useRef(null);
   const topTextRef = useRef(null);
   const svgContainerRef = useRef(null);
+  const ballRef = useRef(null);
+  const glowBallRef = useRef(null);
 
-  // Path data reflecting the curves seen in the screenshots
+  const cardRef1 = useRef(null);
+  const cardRef2 = useRef(null);
+  const cardRef3 = useRef(null);
+  const cardRef4 = useRef(null);
+
   const pathData = "M75.9813 0V429.095C77.5097 446.599 79.7002 471.868 93.3704 507.113C169.604 703.656 173.69 780.674 75.9813 1030.73C-26.6131 1293.29 -21.3403 1360.8 75.9813 1595.85C170.818 1824.91 172.668 1940.93 86.2012 2162.98C78.9349 2188.8 72.8987 2220.99 75.9813 2250";
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       const path = activeLineRef.current;
+      if (!path) return;
       const pathLength = path.getTotalLength();
+      const ball = ballRef.current;
+      const glowBall = glowBallRef.current;
 
-      // Set initial state - line not drawn yet
       gsap.set(path, { strokeDasharray: pathLength, strokeDashoffset: pathLength });
+      gsap.set([ball, glowBall], { opacity: 0 });
 
-      // Animate line drawing from top to bottom as scroll progresses
+      const container = containerRef.current;
+      const svgElement = svgContainerRef.current;
+      
+      const getCardRects = () => {
+        const containerRect = container.getBoundingClientRect();
+        const svgRect = svgElement.getBoundingClientRect();
+        
+        return {
+          containerRect,
+          svgRect,
+          cards: [
+            { ref: cardRef1, element: cardRef1.current, name: 'card1' },
+            { ref: cardRef2, element: cardRef2.current, name: 'card2' },
+            { ref: cardRef3, element: cardRef3.current, name: 'card3' },
+            { ref: cardRef4, element: cardRef4.current, name: 'card4' }
+          ].filter(c => c.element).map(c => ({
+            ...c,
+            rect: c.element.getBoundingClientRect()
+          }))
+        };
+      };
+
+      let metrics = getCardRects();
+
       gsap.to(path, {
         strokeDashoffset: 0,
         ease: "none",
         scrollTrigger: {
-          trigger: containerRef.current,
+          trigger: container,
           start: "top top",         
           end: "bottom top",        
-          scrub: 0.3,
+          scrub: true,
           invalidateOnRefresh: true,
+          onRefresh: () => {
+            metrics = getCardRects();
+          },
+          onUpdate: (self) => {
+            if (!metrics) return;
+
+            const progress = self.progress;
+            let currentX = 75.9813;
+            let currentY = 0;
+
+            if (progress > 0 && progress <= 1) {
+              const length = pathLength * (progress >= 1 ? 0.999 : progress);
+              const point = path.getPointAtLength(length);
+              currentX = point.x;
+              currentY = point.y;
+
+              gsap.set([ball, glowBall], {
+                attr: { cx: currentX, cy: currentY },
+                opacity: 1
+              });
+            }
+
+            const svgWidth = svgElement.offsetWidth || 150;
+            const svgHeight = svgElement.offsetHeight || 2251;
+            
+            // Get ball's actual position on screen
+            const ballScreenX = metrics.svgRect.left + (svgWidth / 2) - 75 + (currentX * (svgWidth / 151));
+            const ballScreenY = metrics.svgRect.top + (currentY * (svgHeight / 2251));
+
+            // Check each card - does the ball intersect it?
+            metrics.cards.forEach((card) => {
+              const cardRect = card.rect;
+              
+              // Simple intersection check - ball enters card area
+              const isInsideCard = (
+                ballScreenX >= cardRect.left - 20 &&
+                ballScreenX <= cardRect.right + 20 &&
+                ballScreenY >= cardRect.top - 20 &&
+                ballScreenY <= cardRect.bottom + 20
+              );
+              
+              if (isInsideCard) {
+                // Calculate distance from ball to card center for intensity
+                const cardCenterX = (cardRect.left + cardRect.right) / 2;
+                const cardCenterY = (cardRect.top + cardRect.bottom) / 2;
+                const distanceToCenter = Math.sqrt(
+                  Math.pow(ballScreenX - cardCenterX, 2) + 
+                  Math.pow(ballScreenY - cardCenterY, 2)
+                );
+                const maxDistance = 200;
+                const intensity = Math.max(0, 1 - (distanceToCenter / maxDistance));
+                
+                // Add glowing class to card
+                card.element.classList.add('card-glowing');
+                card.element.style.setProperty('--glow-intensity', intensity);
+              } else {
+                // Remove glow when ball leaves
+                card.element.classList.remove('card-glowing');
+              }
+            });
+          }
         }
       });
 
-      // Animate top text fade in
       gsap.fromTo(topTextRef.current,
-        {
-          opacity: 0,
-          y: 20
-        },
+        { opacity: 0, y: 20 },
         {
           opacity: 1,
           y: 0,
           duration: 0.8,
           scrollTrigger: {
-            trigger: containerRef.current,
+            trigger: container,
             start: "top 80%",
             toggleActions: "play none none reverse"
           }
         }
       );
 
-      // Card reveal animations
       gsap.utils.toArray('.reveal-card').forEach((card) => {
         gsap.from(card, {
           y: 60,
@@ -70,52 +157,52 @@ const ProtectionShowcase = () => {
           }
         });
       });
-
-      // Gradient border animation for cards when they intersect with the line
-      gsap.utils.toArray('.gradient-border-card').forEach((card) => {
-        ScrollTrigger.create({
-          trigger: card,
-          start: "top 70%",
-          end: "bottom 30%",
-          onEnter: () => {
-            card.classList.add('card-highlight');
-          },
-          onLeave: () => {
-            card.classList.remove('card-highlight');
-          },
-          onEnterBack: () => {
-            card.classList.add('card-highlight');
-          },
-          onLeaveBack: () => {
-            card.classList.remove('card-highlight');
-          }
-        });
-      });
       
     }, containerRef);
     return () => ctx.revert();
   }, []);
 
   return (
-    <div ref={containerRef} className="text-white relative py-0 overflow-x-clip">
-
-      {/* Brand Accurate Scoped Styled Sheet overrides */}
-      <style jsx>{`
-        .gradient-border-card {
-          transition: all 0.3s ease-out;
+    <div ref={containerRef} className="text-white relative py-0 overflow-x-clip bg-black">
+      <style jsx global>{`
+        .image-card img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
-        .gradient-border-card.card-highlight {
-          box-shadow: 0 0 0 1px rgba(0, 229, 229, 0.2), 0 0 20px rgba(57, 242, 161, 0.1);
+        
+        /* Card background glow effect - appears when SVG ball enters the card */
+        .card-glowing {
+          position: relative;
+          transition: box-shadow 0.2s ease;
+          box-shadow: 0 0 calc(40px * var(--glow-intensity, 0)) 
+                      rgba(0, 229, 229, 0.6),
+                      0 0 calc(80px * var(--glow-intensity, 0)) 
+                      rgba(57, 242, 161, 0.4),
+                      0 0 calc(120px * var(--glow-intensity, 0)) 
+                      rgba(153, 255, 51, 0.2);
         }
-        .gradient-border-card.card-highlight::before {
+        
+        /* Inner glow effect on the card background */
+        .card-glowing::before {
           content: '';
           position: absolute;
-          inset: -1px;
-          background: linear-gradient(135deg, #00E5E5 0%, #39F2A1 50%, #99FF33 100%);
-          border-radius: inherit;
-          opacity: 0.5;
+          inset: 0;
+          background: radial-gradient(circle at center,
+            rgba(0, 229, 229, 0.15) 0%,
+            rgba(57, 242, 161, 0.1) 30%,
+            transparent 70%
+          );
+          opacity: calc(var(--glow-intensity, 0) * 0.8);
           pointer-events: none;
-          z-index: -1;
+          z-index: 1;
+          transition: opacity 0.15s ease;
+        }
+        
+        /* Keep content above the glow */
+        .card-glowing > * {
+          position: relative;
+          z-index: 2;
         }
       `}</style>
 
@@ -125,16 +212,16 @@ const ProtectionShowcase = () => {
             ref={topTextRef}
             className="text-lg md:text-2xl lg:text-6xl font-bold leading-[1.1] tracking-wide text-white opacity-0"
             style={{
-                textShadow: '0 0 .5rem #111, 0 0 .5rem #00E5E5, 0 0 3rem #00E5E5, 0 0 6rem #99FF33',
-              }}
+              textShadow: '0 0 .5rem #111, 0 0 .5rem #00E5E5, 0 0 3rem #00E5E5, 0 0 6rem #99FF33',
+            }}
           >
-            It’s time for a new approach.
+            It&apos;s time for a new approach.
           </p>
         </div>
       </div>
 
-      {/* THE SPINE - Corrected with progressive multi-stop colors mapping the brand logo */}
-      <div ref={svgContainerRef} className="absolute inset-0 flex justify-center pointer-events-none overflow-visible -mt-[480px]">
+      {/* SVG RUNWAY WITH THE BALL */}
+      <div ref={svgContainerRef} className="absolute inset-0 flex justify-center pointer-events-none overflow-visible -mt-[480px] z-0">
         <div className="relative h-full w-[150px] max-w-[150px] shrink-0">
           <svg
             viewBox="0 0 151 2251"
@@ -145,13 +232,25 @@ const ProtectionShowcase = () => {
             <defs>
               <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="2251" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stopColor="#00E5E5" />
-                <stop offset="25%" stopColor="#39F2A1" />
-                <stop offset="50%" stopColor="#99FF33" />
-                <stop offset="75%" stopColor="#39F2A1" />
-                <stop offset="100%" stopColor="#00E5E5" />
+                <stop offset="35%" stopColor="#39F2A1" />
+                <stop offset="70%" stopColor="#00E5E5" />
+                <stop offset="100%" stopColor="#99FF33" />
               </linearGradient>
+              
+              <radialGradient id="ballGradient" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#ffffff" />
+                <stop offset="40%" stopColor="#39F2A1" />
+                <stop offset="100%" stopColor="#00E5E5" />
+              </radialGradient>
+              
+              <radialGradient id="ballGlowGradient" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#00E5E5" stopOpacity="0.8" />
+                <stop offset="40%" stopColor="#39F2A1" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#99FF33" stopOpacity="0" />
+              </radialGradient>
+              
               <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
@@ -159,192 +258,136 @@ const ProtectionShowcase = () => {
               </filter>
             </defs>
 
-            {/* Background gray path - always visible as base */}
-            <path d={pathData} stroke="#18181b" strokeWidth="2" fill="none" />
+            <path d={pathData} stroke="#222" strokeWidth="1.5" fill="none" />
 
-            {/* Active gradient path that gets revealed during scroll */}
             <path
               ref={activeLineRef}
               d={pathData}
               stroke="url(#lineGradient)"
-              strokeWidth="2.5"
+              strokeWidth="2"
               fill="none"
               filter="url(#glow)"
-              className="transition-all duration-75"
+              style={{ strokeDasharray: "1000", strokeDashoffset: "1000" }}
+            />
+
+            <circle
+              ref={glowBallRef}
+              cx="75.9813"
+              cy="0"
+              r="40"
+              fill="url(#ballGlowGradient)"
+              style={{ opacity: 0 }}
+            />
+
+            {/* THIS IS THE SVG CIRCLE BALL - it creates the glow on cards */}
+            <circle
+              ref={ballRef}
+              cx="75.9813"
+              cy="0"
+              r="8"
+              fill="url(#ballGradient)"
+              style={{ opacity: 0 }}
             />
           </svg>
         </div>
       </div>
 
-      {/* CARDS LAYER */}
-      <div className="max-w-7xl mx-auto relative z-10 overflow-visible">
+      {/* CARDS - they glow when the SVG ball enters them */}
+      <div className="max-w-7xl mx-auto relative z-20 overflow-visible">
 
-        {/* SECTION 1: Curve 1 */}
-        <div className="relative min-h-[850px] h-auto md:h-[850px] mb-8 md:mb-0">
-          {/* Credential Card (Left) */}
-          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[650px] z-20 w-auto max-w-[90vw] sm:max-w-none gradient-border-card">
-            <VisualCard rotation="-rotate-[12deg]" width="w-[90vw] sm:w-[440px]" height="h-auto sm:h-40 min-h-[160px]">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 p-4 sm:p-0">
-                <div className="w-14 h-14 rounded-full bg-zinc-800/50 flex items-center justify-center border border-white/5 shrink-0">
-                  <svg className="w-7 h-7 text-zinc-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-white text-xl sm:text-2xl font-medium tracking-tight break-all">user@company.com</div>
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(0,229,229,0.5)] shrink-0" style={{ background: 'linear-gradient(135deg, #00E5E5, #99FF33)' }}>
-                      <span className="text-[10px] text-black">🔒</span>
-                    </div>
-                    <span className="text-zinc-500 font-mono text-sm sm:text-base break-all">Xmo8Lp4x#jk_1</span>
-                  </div>
-                </div>
-                <div className="opacity-20 text-[9px] font-black tracking-[0.4em] uppercase hidden sm:block writing-mode-vertical ml-2">
-                  Leaked Credential
-                </div>
-              </div>
-            </VisualCard>
+        {/* SECTION 1 */}
+        <div className="relative min-h-[850px] h-auto md:h-[850px]">
+          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[650px] z-30 w-auto max-w-[90vw] sm:max-w-none">
+            <ImageCard 
+              src="/images/home/card-1.webp" 
+              alt="Credential leak visualization"
+              rotation="-rotate-[12deg]"
+              width="w-[90vw] sm:w-[440px]"
+              height="h-auto sm:h-40 min-h-[160px]"
+            />
           </div>
 
-          {/* Content Card (Right) */}
-          <div className="reveal-card absolute left-[5%] sm:left-[48%] top-[510px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl gradient-border-card">
+          <div className="reveal-card absolute left-[5%] sm:left-[48%] top-[510px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl z-30">
             <GlassCard
+              cardRef={cardRef1}
               title="Phishing as a defense"
               desc="MoK.N Baits are defensive phishing pages that lure attackers into revealing compromised credentials before they're used."
             />
           </div>
         </div>
 
-        {/* SECTION 2: Curve 2 */}
-        <div className="relative min-h-[900px] h-auto md:h-[900px] mb-8 md:mb-0">
-          {/* Content Card (Left) */}
-          <div className="reveal-card absolute left-[5%] sm:right-[48%] sm:left-auto top-[300px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl gradient-border-card z-10">
+        {/* SECTION 2 */}
+        <div className="relative min-h-[900px] h-auto md:h-[900px]">
+          <div className="reveal-card absolute left-[5%] sm:right-[48%] sm:left-auto top-[300px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl z-30">
             <GlassCard
+              cardRef={cardRef2}
               side="left"
               title="Only valid credentials"
               desc="Millions of credentials may be tested. Our Baits filter the noise and alert only when valid ones are used against your systems."
             />
           </div>
 
-          {/* Visual Card Stack (Right) */}
-          <div className="reveal-card absolute left-[5%] sm:right-[8%] sm:left-auto top-[380px] w-[90vw] sm:w-auto gradient-border-card">
-            <div className="relative group">
-              <div className="hidden sm:block absolute top-[-40px] -left-8 w-[400px] h-48 bg-zinc-900/20 border border-white/5 -rotate-[8deg] blur-[1px] opacity-40" />
-              <div className="hidden sm:block absolute top-[-20px] -left-4 w-[400px] h-48 bg-zinc-900/40 border border-white/5 -rotate-[5deg] opacity-60" />
-
-              <VisualCard rotation="-rotate-[3deg]" width="w-[90vw] sm:w-[420px]" height="h-auto sm:h-52 min-h-[200px]">
-                <div className="flex flex-col h-full justify-between py-4 sm:py-2 px-4 sm:px-0">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,229,229,0.4)] shrink-0" style={{ background: 'linear-gradient(135deg, #00E5E5, #99FF33)' }}>
-                      <span className="text-black text-xs">⚠️</span>
-                    </div>
-                    <div>
-                      <div className="text-[#00E5E5] text-lg sm:text-xl font-bold tracking-tight">Valid Password</div>
-                      <div className="text-zinc-500 text-xs mt-0.5">Verified credential compromise</div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-end mt-6 sm:mt-8 flex-wrap gap-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-zinc-400 font-mono text-xs">Joe_b***</span>
-                      <span className="bg-[#00E5E5]/10 text-[#00E5E5] text-[8px] px-2 py-0.5 rounded border border-[#00E5E5]/20 uppercase font-black">
-                        Critical Alert
-                      </span>
-                    </div>
-                    <div className="text-zinc-600 text-[10px] font-medium">July 28th</div>
-                  </div>
-                </div>
-              </VisualCard>
-            </div>
+          <div className="reveal-card absolute left-[5%] sm:right-[8%] sm:left-auto top-[380px] w-[90vw] sm:w-auto z-30">
+            <ImageCard 
+              src="/images/home/c2.webp"
+              alt="Valid credential alert visualization"
+              rotation="-rotate-[3deg]"
+              width="w-[90vw] sm:w-[420px]"
+              height="h-auto sm:h-52 min-h-[200px]"
+            />
           </div>
         </div>
 
-        {/* SECTION 3: Curve 3 */}
-        <div className="relative min-h-[850px] h-auto md:h-[850px] mb-8 md:mb-0">
-          {/* Attack Overview Chart (Left) */}
-          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[0px] z-20 w-auto max-w-[90vw] sm:max-w-none gradient-border-card">
-            <VisualCard rotation="rotate-0" width="w-[90vw] sm:w-[450px]" height="h-auto sm:h-64 min-h-[280px]">
-              <div className="relative h-full p-4 sm:p-0">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-                  <div>
-                    <h4 className="text-white text-lg sm:text-xl font-semibold">Attack Overview</h4>
-                    <p className="text-[10px] text-zinc-500 mt-1">
-                      Threat Actor <span className="text-[#00E5E5]">APT28</span>
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] text-zinc-500">5900 total attempts in 2 hours</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 mt-4">
-                  <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0">
-                    <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                      <circle cx="50" cy="50" r="40" stroke="#18181b" strokeWidth="8" fill="none" />
-                      <circle cx="50" cy="50" r="40" stroke="#27272a" strokeWidth="8" fill="none" strokeDasharray="251" strokeDashoffset="100" />
-                      <circle cx="50" cy="50" r="40" stroke="url(#pieGradient)" strokeWidth="8" fill="none" strokeDasharray="251" strokeDashoffset="200" />
-                      <defs>
-                        <linearGradient id="pieGradient" x1="0" y1="0" x2="1" y2="1">
-                          <stop stopColor="#00E5E5" />
-                          <stop offset="50%" stopColor="#39F2A1" />
-                          <stop offset="100%" stopColor="#99FF33" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-zinc-950 rounded-full shadow-inner" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2 w-full sm:w-auto">
-                    <LegendItem color="bg-zinc-800" label="Leaked Password" />
-                    <LegendItem color="bg-white" label="Invalid User" />
-                    <LegendItem color="bg-gradient-to-r from-[#00E5E5] to-[#99FF33]" label="Valid credentials" />
-                  </div>
-                </div>
-              </div>
-            </VisualCard>
+        {/* SECTION 3 */}
+        <div className="relative min-h-[850px] h-auto md:h-[850px]">
+          <div className="reveal-card absolute left-[2%] sm:left-[5%] top-[0px] z-30 w-auto max-w-[90vw] sm:max-w-none">
+            <ImageCard 
+              src="/images/home/c3.webp"
+              alt="Attack overview chart visualization"
+              rotation="rotate-0"
+              width="w-[90vw] sm:w-[450px]"
+              height="h-auto sm:h-64 min-h-[280px]"
+            />
           </div>
 
-          {/* Content Card (Right) */}
-          <div className="reveal-card absolute left-[5%] sm:left-[48%] -top-[80px] sm:-top-[80px] top-[-60px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl gradient-border-card">
+          <div className="reveal-card absolute left-[5%] sm:left-[48%] -top-[80px] top-[-60px] w-[90vw] sm:w-full max-w-[60vw] sm:max-w-xl z-30">
             <GlassCard
+              cardRef={cardRef3}
               title="Tailored Threat intelligence"
               desc="Monitor real attacker activity targeting your environment. No generic feeds, only insights tied to your users, systems, and domains."
             />
           </div>
         </div>
 
-        {/* SECTION 4: Final Curve / Bottom */}
-        <div className="reveal-card flex justify-center pb-16 sm:pb-40 px-4 sm:px-6 -mt-[300px] sm:-mt-[400px] relative z-20">
-          <div className="w-full max-w-6xl bg-zinc-950 border border-white/10 p-6 sm:p-12 md:p-24 text-center relative overflow-hidden shadow-2xl gradient-border-card">
+        {/* SECTION 4 */}
+        <div className="reveal-card flex justify-center pb-16 sm:pb-40 px-4 sm:px-6 -mt-[300px] sm:-mt-[400px] relative z-30">
+          <div 
+            ref={cardRef4}
+            className="w-full max-w-6xl bg-zinc-950/80 border border-white/10 p-6 sm:p-12 md:p-24 text-center relative shadow-2xl backdrop-blur-md rounded-sm"
+          >
+            <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay rounded-sm" />
+            <div className="absolute -top-1.5 -left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45" />
+            <div className="absolute -top-1.5 -right-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45" />
+            <div className="absolute -bottom-1.5 -left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45" />
+            <div className="absolute -bottom-1.5 -right-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45" />
 
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 blur-[120px] -z-10" />
-            <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
-
-            <div className="absolute -top-1.5 -left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 " />
-            <div className="absolute -top-1.5 -right-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 " />
-            <div className="absolute -bottom-1.5 -left-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 " />
-            <div className="absolute -bottom-1.5 -right-1.5 w-2 h-2 sm:w-3 sm:h-3 bg-white rotate-45 " />
-
-            <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 tracking-tight text-white leading-tight">
-              3 minutes to implement <br className="hidden sm:block" />
-              your First Baits.
-            </h2>
-
-            <p className="text-zinc-500 text-base sm:text-lg max-w-2xl mx-auto mb-8 sm:mb-12 leading-relaxed">
-              No setup friction. No integration delays.<br className="hidden sm:block" />
-              Go from zero to live detection in minutes, with a seamless onboarding experience.
-            </p>
-
-            {/* Primary Action */}
-            <GradientButton
-              className="px-8 py-3 text-sm md:text-lg font-bold tracking-tight cursor-pointer text-white"
-              variant="primary"
-              onClick={() => console.log('Learn more about baits clicked')}
-            >
-              Learn more about baits
-            </GradientButton>
+            <div className="relative z-10">
+              <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 tracking-tight text-white leading-tight">
+                3 minutes to implement <br className="hidden sm:block" />
+                your First Baits.
+              </h2>
+              <p className="text-zinc-500 text-base sm:text-lg max-w-2xl mx-auto mb-8 sm:mb-12 leading-relaxed">
+                No setup friction. No integration delays.<br className="hidden sm:block" />
+                Go from zero to live detection in minutes, with a seamless onboarding experience.
+              </p>
+              <GradientButton
+                className="px-8 py-3 text-sm md:text-lg font-bold tracking-tight cursor-pointer text-white"
+                variant="primary"
+                onClick={() => console.log('Learn more about baits clicked')}
+              >
+                Learn more about baits
+              </GradientButton>
+            </div>
           </div>
         </div>
 
@@ -353,45 +396,29 @@ const ProtectionShowcase = () => {
   );
 };
 
-const GlassCard = ({ title, desc, side = "left" }) => (
-  <div className={`relative group p-6 sm:p-8 md:p-10 bg-zinc-950 border border-white/5 backdrop-blur-md rounded-sm min-h-[300px] sm:min-h-[400px] flex flex-col justify-center ${side === 'right' ? 'text-right items-end' : 'text-left items-start'}`}>
+const ImageCard = ({ src, alt, rotation = "", width = "w-96", height = "h-40" }) => (
+  <div className={`${width} ${height} relative ${rotation} overflow-hidden image-card rounded-sm bg-black/50`}>
+    <img src={src} alt={alt} className="w-full h-full object-cover opacity-90" />
+  </div>
+);
 
-    <div className={`absolute top-1/4 ${side === 'right' ? 'right-4 sm:right-10' : 'left-4 sm:left-10'} w-24 h-24 sm:w-32 sm:h-32  blur-[60px] -z-10`} />
-
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
-      <div className="w-10 h-10 sm:w-14 sm:h-14 bg-zinc-950 border border-white/10 rounded-xl flex items-center justify-center shadow-2xl shrink-0">
-        <svg className="w-5 h-5 sm:w-7 sm:h-7 text-white opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+const GlassCard = ({ cardRef, title, desc, side = "left" }) => (
+  <div 
+    ref={cardRef}
+    className={`relative p-6 sm:p-8 md:p-10 bg-zinc-950 border border-white/10 backdrop-blur-xl rounded-sm min-h-[280px] sm:min-h-[320px] flex flex-col justify-center ${side === 'right' ? 'text-right items-end' : 'text-left items-start'} shadow-xl w-full h-full overflow-hidden z-30`}
+  >
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-4 sm:mb-6 relative z-10">
+      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-zinc-900 border border-white/10 rounded-lg flex items-center justify-center shadow-2xl shrink-0">
+        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
       </div>
-      <h3 className="text-2xl sm:text-3xl md:text-5xl lg:text-4xl font-semibold tracking-tight text-white text-left">{title}</h3>
+      <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight text-white">{title}</h3>
     </div>
 
-    <p className="text-zinc-400 text-base sm:text-lg md:text-xl leading-relaxed max-w-xl font-light text-left">
+    <p className="text-zinc-400 text-sm sm:text-base md:text-md leading-relaxed max-w-xl font-normal relative z-10">
       {desc}
     </p>
-  </div>
-);
-
-const VisualCard = ({ children, rotation = "", width = "w-96", height = "h-40" }) => (
-  <div className={`${width} ${height} bg-zinc-950 border border-white/10 relative shadow-2xl ${rotation} flex flex-col justify-center px-4 sm:px-8`}>
-    <div className="absolute -top-1 -left-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
-    <div className="absolute -top-1 -right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
-    <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
-    <div className="absolute -bottom-1 -right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full shadow-[0_0_10px_white]" />
-
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent)] pointer-events-none" />
-
-    <div className="relative z-10">
-      {children}
-    </div>
-  </div>
-);
-
-const LegendItem = ({ color, label }) => (
-  <div className="flex items-center gap-2">
-    <div className={`w-2 h-2 sm:w-3 sm:h-3 ${color} rounded-sm shrink-0`} />
-    <span className="text-[8px] sm:text-[10px] text-zinc-400 font-medium whitespace-nowrap">{label}</span>
   </div>
 );
 
@@ -485,7 +512,6 @@ export default function IntroSection() {
     <div className="bg-black">
       <main ref={containerRef} className="min-h-screen">
         <section className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden px-6">
-          {/* Updated Ambient Top Glow matching logo spectrum directly */}
           <div
             ref={gradientRef}
             className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1400px] pointer-events-none origin-top"
@@ -504,8 +530,7 @@ export default function IntroSection() {
                   maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)'
                 }}
-              >
-              </div>
+              />
             </div>
           </div>
 
@@ -528,8 +553,6 @@ export default function IntroSection() {
       <div ref={protectionShowcaseRef} className="w-full relative -mt-[70vh]">
         <ProtectionShowcase />
       </div>
-
-      <div className="h-0"></div>
     </div>
   );
 }

@@ -210,8 +210,8 @@ const Hero = () => {
             <rect ref={rotatingBorderRef} x="0" y="0" width="100%" height="100%" fill="none" stroke="url(#rotatingGradient)" strokeWidth="1" />
             <defs>
               <linearGradient id="rotatingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#09E5E5" />
-                <stop offset="100%" stopColor="#A8FF57" />
+                <stop offset="0%" stopColor="#00E5E5" />
+                <stop offset="100%" stopColor="#99FF33" />
               </linearGradient>
             </defs>
           </svg>

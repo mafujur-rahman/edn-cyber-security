@@ -40,7 +40,7 @@ export default function DeepDive() {
           <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
             <span
               style={{
-                textShadow: '0 0 1rem #09E5E5, 0 0 3rem #8FEA3D',
+                textShadow: '0 0 1rem #00E5E5, 0 0 3rem #8FEA3D',
                 display: 'inline-block',
               }}
             >
