@@ -72,15 +72,15 @@ export default function Footer() {
                             />
                         </div>
 
-                        {/* Social Icons with #09E5E5 on hover */}
+                        {/* Social Icons matching the exact logo Cyan on hover */}
                         <div className="flex items-center gap-7 text-white/80">
-                            <a href="#" className="hover:text-[#09E5E5] transition-all duration-300 transform">
+                            <a href="#" className="hover:text-[#00E5E5] transition-all duration-300 transform">
                                 <FaLinkedinIn size={20} />
                             </a>
-                            <a href="#" className="hover:text-[#09E5E5] transition-all duration-300 transform">
+                            <a href="#" className="hover:text-[#00E5E5] transition-all duration-300 transform">
                                 <FaInstagram size={20} />
                             </a>
-                            <a href="#" className="hover:text-[#09E5E5] transition-all duration-300 transform">
+                            <a href="#" className="hover:text-[#00E5E5] transition-all duration-300 transform">
                                 <FaFacebookF size={20} />
                             </a>
                         </div>
@@ -123,8 +123,8 @@ export default function Footer() {
                 </div>
             </div>
 
-            {/* Bottom Glowing Gradient Effect - Reveals smoothly while scrolling within footer */}
-            <div className="absolute bottom-0 left-0 w-full flex justify-center pointer-events-none">
+            {/* Bottom Glowing Gradient Effect - Exactly matching the Ethical Den logo text direction */}
+            <div className="absolute bottom-0 left-0 w-full flex justify-center pointer-events-none overflow-hidden">
                 <div
                     ref={glowRef}
                     className="relative w-full"
@@ -135,47 +135,47 @@ export default function Footer() {
                         opacity: 0,
                     }}
                 >
-                    {/* Main gradient with straight bottom edge */}
+                    {/* Main gradient fading to transparent upwards with explicit Left-to-Right layout */}
                     <div 
                         className="absolute bottom-0 left-0 w-full"
                         style={{
                             height: "280px",
-                            background: `linear-gradient(
-                                to top,
-                                rgba(168, 255, 87, 0.45) 0%,
-                                rgba(168, 255, 87, 0.2) 15%,
-                                rgba(9, 229, 229, 0.1) 35%,
-                                transparent 80%
-                            )`,
+                            background: `
+                                linear-gradient(to top, rgba(0,0,0,0) 0%, #000000 100%),
+                                linear-gradient(to right, rgba(0, 225, 225, 0.25) 0%, rgba(57, 242, 161, 0.2) 50%, rgba(153, 255, 51, 0.25) 100%)
+                            `,
+                            backgroundBlendMode: "screen",
+                            maskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 85%)",
+                            WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 85%)",
                         }}
                     >
-                        {/* Sharp accent line at the bottom */}
+                        {/* Sharp logo-accurate edge line pinned at the very bottom edge */}
                         <div 
                             className="absolute bottom-0 left-0 w-full"
                             style={{
                                 height: "2px",
-                                background: "linear-gradient(90deg, transparent, rgba(168, 255, 87, 0.7), rgba(9, 229, 229, 0.5), rgba(168, 255, 87, 0.7), transparent)",
+                                background: "linear-gradient(90deg, transparent 0%, #00E5E5 15%, #39F2A1 50%, #99FF33 85%, transparent 100%)",
                             }}
                         />
                     </div>
 
-                    {/* Soft glow above the line */}
+                    {/* Mid-ground ambient blur layer blending the colors */}
                     <div 
                         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4"
                         style={{
                             height: "140px",
-                            background: "radial-gradient(ellipse at center bottom, rgba(168, 255, 87, 0.25), transparent 70%)",
-                            filter: "blur(20px)",
+                            background: "radial-gradient(ellipse at center bottom, rgba(57, 242, 161, 0.15), transparent 75%)",
+                            filter: "blur(25px)",
                         }}
                     />
                     
-                    {/* Extra ambient glow extending higher */}
+                    {/* Extra deep ambient atmospheric fill */}
                     <div 
                         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full"
                         style={{
-                            height: "200px",
-                            background: "radial-gradient(ellipse at center bottom, rgba(9, 229, 229, 0.1), transparent 80%)",
-                            filter: "blur(35px)",
+                            height: "220px",
+                            background: "radial-gradient(ellipse at center bottom, rgba(0, 229, 229, 0.08), transparent 80%)",
+                            filter: "blur(40px)",
                         }}
                     />
                 </div>

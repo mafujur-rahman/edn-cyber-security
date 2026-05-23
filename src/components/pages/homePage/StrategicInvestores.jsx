@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useRef, useState, useLayoutEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import WordRevealText from "@/components/utils/WordRevealText";
-
 
 // Register ScrollTrigger plugin
 if (typeof window !== "undefined") {
@@ -44,9 +43,10 @@ export default function StrategicInvestors() {
   const logosContainerRef = useRef(null);
   const sectionRef = useRef(null);
   const cardsContainerRef = useRef(null);
-  const revealOverlayRef = useRef(null);
+  const gradientRef = useRef(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
+  const animationTriggeredRef = useRef(false);
 
   const handleMouseMove = (e) => {
     if (!logosContainerRef.current) return;
@@ -57,62 +57,106 @@ export default function StrategicInvestors() {
     });
   };
 
-  useLayoutEffect(() => {
-    // Only run on client side
-    if (typeof window === "undefined") return;
+  // Function to trigger the animation
+  const triggerAnimation = () => {
+    if (animationTriggeredRef.current || !gradientRef.current) {
+      console.log("Animation already triggered or gradient ref missing");
+      return;
+    }
+    
+    console.log("Triggering gradient animation");
+    animationTriggeredRef.current = true;
+    
+    // Kill any existing animations on this element
+    gsap.killTweensOf(gradientRef.current);
+    
+    // Set initial position
+    gsap.set(gradientRef.current, {
+      x: "-100%",
+      opacity: 1,
+    });
+    
+    // Animate
+    gsap.to(gradientRef.current, {
+      x: "100%",
+      duration: 1.5,
+      ease: "power2.inOut",
+      onComplete: () => {
+        if (gradientRef.current) {
+          gsap.to(gradientRef.current, {
+            opacity: 0,
+            duration: 0.3,
+            ease: "power2.out",
+          });
+        }
+      },
+    });
+  };
 
-    const ctx = gsap.context(() => {
-      // Left-to-right reveal animation for the middle three cards
-      if (revealOverlayRef.current && cardsContainerRef.current) {
-        // Set initial state - hidden (width 0)
-        gsap.set(revealOverlayRef.current, {
-          width: "0%",
-          opacity: 1,
-        });
-
-        // Create scroll-triggered animation
-        ScrollTrigger.create({
-          trigger: cardsContainerRef.current,
-          start: "top 80%",
-          end: "top 40%",
-          onEnter: () => {
-            gsap.to(revealOverlayRef.current, {
-              width: "100%",
-              duration: 1.2,
-              ease: "power2.inOut",
-              onComplete: () => {
-                gsap.to(revealOverlayRef.current, {
-                  opacity: 0,
-                  duration: 0.3,
-                  ease: "power2.out",
-                });
-              },
-            });
-          },
-          onEnterBack: () => {
-            // Reset and play again when scrolling back up
-            gsap.set(revealOverlayRef.current, {
-              width: "0%",
-              opacity: 1,
-            });
-            gsap.to(revealOverlayRef.current, {
-              width: "100%",
-              duration: 1.2,
-              ease: "power2.inOut",
-              onComplete: () => {
-                gsap.to(revealOverlayRef.current, {
-                  opacity: 0,
-                  duration: 0.3,
-                  ease: "power2.out",
-                });
-              },
-            });
-          },
-        });
+  useEffect(() => {
+    // Reset animation trigger when component mounts
+    animationTriggeredRef.current = false;
+    
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      if (!cardsContainerRef.current) {
+        console.log("Cards container ref not found");
+        return;
       }
-    }, sectionRef);
-
-    return () => ctx.revert();
+      
+      console.log("Setting up ScrollTrigger for Strategic Investors");
+      
+      // Create ScrollTrigger
+      const st = ScrollTrigger.create({
+        trigger: cardsContainerRef.current,
+        start: "top 80%",
+        onEnter: () => {
+          console.log("ScrollTrigger onEnter fired");
+          triggerAnimation();
+        },
+        onEnterBack: () => {
+          console.log("ScrollTrigger onEnterBack fired - ignoring");
+          // Do nothing - only trigger once when scrolling down
+        },
+        toggleActions: "play none none none",
+      });
+      
+      // Force ScrollTrigger to refresh and check current position
+      ScrollTrigger.refresh();
+      
+      // Manually check if already in view
+      const checkImmediate = () => {
+        if (!cardsContainerRef.current) return;
+        const rect = cardsContainerRef.current.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const isInView = rect.top < windowHeight * 0.8 && rect.bottom > 0;
+        console.log("Manual check - is in view:", isInView, "rect.top:", rect.top, "trigger point:", windowHeight * 0.8);
+        
+        if (isInView && !animationTriggeredRef.current) {
+          console.log("Already in view, triggering immediately");
+          triggerAnimation();
+        }
+      };
+      
+      // Run immediate check
+      checkImmediate();
+      
+      // Also check after a short delay
+      const delayTimer = setTimeout(checkImmediate, 500);
+      
+      // Check on load
+      window.addEventListener('load', checkImmediate);
+      
+      // Cleanup
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(delayTimer);
+        window.removeEventListener('load', checkImmediate);
+        if (st) st.kill();
+      };
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -132,7 +176,7 @@ export default function StrategicInvestors() {
         </div>
 
         {/* 5-Column Grid Layout */}
-        <div className="relative w-full">
+        <div ref={cardsContainerRef} className="relative w-full">
           {/* Internal Vertical Lines at 20%, 40%, 60%, 80% */}
           {[20, 40, 60, 80].map((leftPos) => (
             <div
@@ -170,15 +214,16 @@ export default function StrategicInvestors() {
               {/* Default black background for the entire 3-column area */}
               <div className="absolute inset-0 bg-black z-0" />
 
-              {/* Left-to-right reveal overlay animation */}
-              <div
-                ref={revealOverlayRef}
-                className="absolute inset-y-0 left-0 z-15 pointer-events-none overflow-hidden"
-                style={{
-                  width: "0%",
-                  background: "linear-gradient(90deg, rgba(9,229,229,0.15), rgba(168,255,87,0.1), transparent)",
-                }}
-              />
+              {/* Container for left-to-right gradient animation */}
+              <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
+                <div
+                  ref={gradientRef}
+                  className="absolute inset-y-0 w-full"
+                  style={{
+                    background: "linear-gradient(90deg, transparent, rgba(9,229,229,0.25), rgba(168,255,87,0.2), rgba(9,229,229,0.25), transparent)",
+                  }}
+                />
+              </div>
 
               {/* Single smooth blended gradient - follows cursor across all 3 columns */}
               <div

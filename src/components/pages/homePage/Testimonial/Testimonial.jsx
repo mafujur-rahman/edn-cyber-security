@@ -94,7 +94,7 @@ export default function ScrollingTestimonial() {
         </div>
       </div>
 
-      {/* Straight Bottom Gradient Container - redesigned for straight edge look */}
+      {/* Straight Bottom Gradient Container - Matching Ethical Den Brand Identity */}
       <div className="absolute bottom-0 left-0 w-full flex justify-center pointer-events-none">
         <div
           ref={circleRef}
@@ -106,39 +106,38 @@ export default function ScrollingTestimonial() {
             opacity: 0,
           }}
         >
-          {/* Main gradient with straight bottom */}
+          {/* Main ambient glow fading upwards while maintaining horizontal logo gradient structure */}
           <div 
             className="absolute bottom-0 left-0 w-full"
             style={{
               height: "280px",
-              background: `linear-gradient(
-                to top,
-                rgba(168, 255, 87, 0.35) 0%,
-                rgba(168, 255, 87, 0.15) 15%,
-                rgba(9, 229, 229, 0.08) 40%,
-                transparent 85%
-              )`,
-              // Straight bottom edge (no border radius)
+              background: `
+                linear-gradient(to top, rgba(0, 0, 0, 0) 0%, #000000 100%),
+                linear-gradient(to right, rgba(0, 229, 229, 0.25) 0%, rgba(57, 242, 161, 0.2) 50%, rgba(153, 255, 51, 0.25) 100%)
+              `,
+              backgroundBlendMode: "screen",
+              maskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 85%)",
+              WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 85%)",
               borderBottom: "none",
             }}
           >
-            {/* Sharp accent line at the very bottom for that "straight out" look */}
+            {/* Sharp accent line at the very bottom with the exact Left-to-Right logo gradient */}
             <div 
               className="absolute bottom-0 left-0 w-full"
               style={{
                 height: "2px",
-                background: "linear-gradient(90deg, transparent, rgba(168, 255, 87, 0.6), rgba(9, 229, 229, 0.4), rgba(168, 255, 87, 0.6), transparent)",
+                background: "linear-gradient(90deg, transparent 0%, #00E5E5 15%, #39F2A1 50%, #99FF33 85%, transparent 100%)",
               }}
             />
           </div>
 
-          {/* Soft ambient glow above the straight line */}
+          {/* Soft centered ambient flow to unify the layout depth */}
           <div 
             className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4"
             style={{
-              height: "120px",
-              background: "radial-gradient(ellipse at center bottom, rgba(168, 255, 87, 0.2), transparent 70%)",
-              filter: "blur(20px)",
+              height: "140px",
+              background: "radial-gradient(ellipse at center bottom, rgba(57, 242, 161, 0.15), transparent 75%)",
+              filter: "blur(25px)",
             }}
           />
         </div>

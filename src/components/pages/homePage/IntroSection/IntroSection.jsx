@@ -27,15 +27,13 @@ const ProtectionShowcase = () => {
       gsap.set(path, { strokeDasharray: pathLength, strokeDashoffset: pathLength });
 
       // Animate line drawing from top to bottom as scroll progresses
-      // Changed start to "top top" so the line drawing begins when the SVG enters the viewport top
-      // and completes when the bottom of the container reaches the top of the viewport (full line visible)
       gsap.to(path, {
         strokeDashoffset: 0,
         ease: "none",
         scrollTrigger: {
           trigger: containerRef.current,
-          start: "top top",         // Starts drawing when container top hits viewport top
-          end: "bottom top",        // Completes when container bottom hits viewport top
+          start: "top top",         
+          end: "bottom top",        
           scrub: 0.3,
           invalidateOnRefresh: true,
         }
@@ -101,21 +99,21 @@ const ProtectionShowcase = () => {
   return (
     <div ref={containerRef} className="text-white relative py-0 overflow-x-clip">
 
-      {/* Add custom styles for gradient border animation */}
+      {/* Brand Accurate Scoped Styled Sheet overrides */}
       <style jsx>{`
         .gradient-border-card {
           transition: all 0.3s ease-out;
         }
         .gradient-border-card.card-highlight {
-          box-shadow: 0 0 0 1px rgba(9, 229, 229, 0.3), 0 0 0 3px rgba(168, 255, 87, 0.2), 0 0 20px rgba(9, 229, 229, 0.1);
+          box-shadow: 0 0 0 1px rgba(0, 229, 229, 0.2), 0 0 20px rgba(57, 242, 161, 0.1);
         }
         .gradient-border-card.card-highlight::before {
           content: '';
           position: absolute;
-          inset: -2px;
-          background: linear-gradient(135deg, #09E5E5, #A8FF57, #09E5E5);
+          inset: -1px;
+          background: linear-gradient(135deg, #00E5E5 0%, #39F2A1 50%, #99FF33 100%);
           border-radius: inherit;
-          opacity: 0.4;
+          opacity: 0.5;
           pointer-events: none;
           z-index: -1;
         }
@@ -127,7 +125,7 @@ const ProtectionShowcase = () => {
             ref={topTextRef}
             className="text-lg md:text-2xl lg:text-6xl font-bold leading-[1.1] tracking-wide text-white opacity-0"
             style={{
-                textShadow: '0 0 .5rem #111, 0 0 .5rem #06B6B6, 0 0 3rem #06B6B6, 0 0 7.5rem #8FEA3D',
+                textShadow: '0 0 .5rem #111, 0 0 .5rem #00E5E5, 0 0 3rem #00E5E5, 0 0 6rem #99FF33',
               }}
           >
             It’s time for a new approach.
@@ -135,7 +133,7 @@ const ProtectionShowcase = () => {
         </div>
       </div>
 
-      {/* THE SPINE - Centered horizontally with responsive containment */}
+      {/* THE SPINE - Corrected with progressive multi-stop colors mapping the brand logo */}
       <div ref={svgContainerRef} className="absolute inset-0 flex justify-center pointer-events-none overflow-visible -mt-[480px]">
         <div className="relative h-full w-[150px] max-w-[150px] shrink-0">
           <svg
@@ -145,13 +143,15 @@ const ProtectionShowcase = () => {
             preserveAspectRatio="xMidYMid meet"
           >
             <defs>
-              <linearGradient id="lineGradient" x1="75.9813" y1="0" x2="75.9813" y2="2250" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#09E5E5" />
-                <stop offset="0.5" stopColor="#A8FF57" />
-                <stop offset="1" stopColor="#09E5E5" />
+              <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="2251" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#00E5E5" />
+                <stop offset="25%" stopColor="#39F2A1" />
+                <stop offset="50%" stopColor="#99FF33" />
+                <stop offset="75%" stopColor="#39F2A1" />
+                <stop offset="100%" stopColor="#00E5E5" />
               </linearGradient>
-              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
                 <feMerge>
                   <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
@@ -160,14 +160,14 @@ const ProtectionShowcase = () => {
             </defs>
 
             {/* Background gray path - always visible as base */}
-            <path d={pathData} stroke="#2a2a2a" strokeWidth="2" fill="none" />
+            <path d={pathData} stroke="#18181b" strokeWidth="2" fill="none" />
 
             {/* Active gradient path that gets revealed during scroll */}
             <path
               ref={activeLineRef}
               d={pathData}
               stroke="url(#lineGradient)"
-              strokeWidth="3"
+              strokeWidth="2.5"
               fill="none"
               filter="url(#glow)"
               className="transition-all duration-75"
@@ -176,7 +176,7 @@ const ProtectionShowcase = () => {
         </div>
       </div>
 
-      {/* CARDS LAYER - Responsive container with no overflow */}
+      {/* CARDS LAYER */}
       <div className="max-w-7xl mx-auto relative z-10 overflow-visible">
 
         {/* SECTION 1: Curve 1 */}
@@ -193,7 +193,7 @@ const ProtectionShowcase = () => {
                 <div className="flex-1 min-w-0">
                   <div className="text-white text-xl sm:text-2xl font-medium tracking-tight break-all">user@company.com</div>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(9,229,229,0.5)] shrink-0" style={{ background: 'linear-gradient(135deg, #09E5E5, #A8FF57)' }}>
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(0,229,229,0.5)] shrink-0" style={{ background: 'linear-gradient(135deg, #00E5E5, #99FF33)' }}>
                       <span className="text-[10px] text-black">🔒</span>
                     </div>
                     <span className="text-zinc-500 font-mono text-sm sm:text-base break-all">Xmo8Lp4x#jk_1</span>
@@ -235,11 +235,11 @@ const ProtectionShowcase = () => {
               <VisualCard rotation="-rotate-[3deg]" width="w-[90vw] sm:w-[420px]" height="h-auto sm:h-52 min-h-[200px]">
                 <div className="flex flex-col h-full justify-between py-4 sm:py-2 px-4 sm:px-0">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(9,229,229,0.4)] shrink-0" style={{ background: 'linear-gradient(135deg, #09E5E5, #A8FF57)' }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,229,229,0.4)] shrink-0" style={{ background: 'linear-gradient(135deg, #00E5E5, #99FF33)' }}>
                       <span className="text-black text-xs">⚠️</span>
                     </div>
                     <div>
-                      <div className="text-[#09E5E5] text-lg sm:text-xl font-bold tracking-tight">Valid Password</div>
+                      <div className="text-[#00E5E5] text-lg sm:text-xl font-bold tracking-tight">Valid Password</div>
                       <div className="text-zinc-500 text-xs mt-0.5">Verified credential compromise</div>
                     </div>
                   </div>
@@ -247,7 +247,7 @@ const ProtectionShowcase = () => {
                   <div className="flex justify-between items-end mt-6 sm:mt-8 flex-wrap gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-zinc-400 font-mono text-xs">Joe_b***</span>
-                      <span className="bg-[#09E5E5]/10 text-[#09E5E5] text-[8px] px-2 py-0.5 rounded border border-[#09E5E5]/20 uppercase font-black">
+                      <span className="bg-[#00E5E5]/10 text-[#00E5E5] text-[8px] px-2 py-0.5 rounded border border-[#00E5E5]/20 uppercase font-black">
                         Critical Alert
                       </span>
                     </div>
@@ -269,7 +269,7 @@ const ProtectionShowcase = () => {
                   <div>
                     <h4 className="text-white text-lg sm:text-xl font-semibold">Attack Overview</h4>
                     <p className="text-[10px] text-zinc-500 mt-1">
-                      Threat Actor <span className="text-[#09E5E5]">APT28</span>
+                      Threat Actor <span className="text-[#00E5E5]">APT28</span>
                     </p>
                   </div>
                   <div className="text-right">
@@ -280,13 +280,14 @@ const ProtectionShowcase = () => {
                 <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 mt-4">
                   <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0">
                     <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                      <circle cx="50" cy="50" r="40" stroke="#1a1a1a" strokeWidth="8" fill="none" />
-                      <circle cx="50" cy="50" r="40" stroke="#333" strokeWidth="8" fill="none" strokeDasharray="251" strokeDashoffset="100" />
+                      <circle cx="50" cy="50" r="40" stroke="#18181b" strokeWidth="8" fill="none" />
+                      <circle cx="50" cy="50" r="40" stroke="#27272a" strokeWidth="8" fill="none" strokeDasharray="251" strokeDashoffset="100" />
                       <circle cx="50" cy="50" r="40" stroke="url(#pieGradient)" strokeWidth="8" fill="none" strokeDasharray="251" strokeDashoffset="200" />
                       <defs>
                         <linearGradient id="pieGradient" x1="0" y1="0" x2="1" y2="1">
-                          <stop stopColor="#09E5E5" />
-                          <stop offset="1" stopColor="#A8FF57" />
+                          <stop stopColor="#00E5E5" />
+                          <stop offset="50%" stopColor="#39F2A1" />
+                          <stop offset="100%" stopColor="#99FF33" />
                         </linearGradient>
                       </defs>
                     </svg>
@@ -298,7 +299,7 @@ const ProtectionShowcase = () => {
                   <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2 w-full sm:w-auto">
                     <LegendItem color="bg-zinc-800" label="Leaked Password" />
                     <LegendItem color="bg-white" label="Invalid User" />
-                    <LegendItem color="bg-gradient-to-r from-[#09E5E5] to-[#A8FF57]" label="Valid credentials" />
+                    <LegendItem color="bg-gradient-to-r from-[#00E5E5] to-[#99FF33]" label="Valid credentials" />
                   </div>
                 </div>
               </div>
@@ -484,28 +485,26 @@ export default function IntroSection() {
     <div className="bg-black">
       <main ref={containerRef} className="min-h-screen">
         <section className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden px-6">
-          {/* Updated Gradient - Lower height, no top border, only bottom sharp line */}
+          {/* Updated Ambient Top Glow matching logo spectrum directly */}
           <div
             ref={gradientRef}
             className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1400px] pointer-events-none origin-top"
             style={{ transform: "scaleY(0)", opacity: 0 }}
           >
             <div className="relative w-full">
-              {/* Main gradient - much lower height */}
               <div
                 className="w-full"
                 style={{
                   height: "240px",
-                  background: `linear-gradient(
-                    to bottom,
-                    rgba(168, 255, 87, 0.3) 0%,
-                    rgba(168, 255, 87, 0.15) 20%,
-                    rgba(9, 229, 229, 0.08) 40%,
-                    transparent 100%
-                  )`,
+                  background: `
+                    linear-gradient(to bottom, rgba(0,0,0,0) 0%, #000000 100%),
+                    linear-gradient(to right, rgba(0, 229, 229, 0.2) 0%, rgba(57, 242, 161, 0.15) 50%, rgba(153, 255, 51, 0.2) 100%)
+                  `,
+                  backgroundBlendMode: "screen",
+                  maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)'
                 }}
               >
-
               </div>
             </div>
           </div>
