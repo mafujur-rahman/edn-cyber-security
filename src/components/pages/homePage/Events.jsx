@@ -1,5 +1,7 @@
 "use client";
+import WordRevealText from '@/components/utils/WordRevealText';
 import React, { useEffect, useRef } from 'react';
+
 
 export default function EventsSection() {
   const videoRef = useRef(null);
@@ -47,9 +49,15 @@ export default function EventsSection() {
 
         {/* RIGHT SIDE: Text Content */}
         <div className="flex flex-col gap-6 max-w-xl">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
-            Let’s meet at our next event
-          </h2>
+          <WordRevealText
+            text="Let’s meet at our next event"
+            className="text-3xl md:text-4xl font-bold tracking-tight text-white"
+            tag="h2"
+            staggerAmount={0.040}
+            duration={0.35}
+            start="top 85%"
+            ease="power3.out"
+          />
 
           <p className="text-sm md:text-[24px] leading-relaxed text-white/40 font-medium">
             Meeting Mokn at the upcoming event promises to be a memorable

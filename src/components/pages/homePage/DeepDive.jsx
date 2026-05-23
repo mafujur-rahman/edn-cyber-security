@@ -2,8 +2,13 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { GradientButton } from '@/components/utils/GradiantButton';
+import WordRevealText from '@/components/utils/WordRevealText';
+
 
 export default function DeepDive() {
+  // Full text to highlight
+  const fullText = "Let’s light up the depths.";
+
   return (
     <section className="relative w-full bg-black py-32 px-6 flex flex-col items-center overflow-hidden">
 
@@ -22,28 +27,34 @@ export default function DeepDive() {
       {/* 2. TEXT CONTENT: Glowing Typography */}
       <div className="relative z-10 text-center max-w-4xl space-y-8 -mt-35">
         <div className="space-y-2">
-          <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
-            Looking to go deeper?
-          </h2>
+          <WordRevealText
+            text="Looking to go deeper?"
+            className="text-4xl md:text-6xl font-bold tracking-tight text-white"
+            tag="h2"
+            staggerAmount={0.04}
+            duration={0.25}
+            start="top 85%"
+            ease="back.out(0.7)"
+          />
           
-          {/* The "Glow" line matching your exact gradient */}
-          <div className="relative inline-block isolate">
-            {/* This layer acts as the gradient shadow. 
-              By matching the exact text, font sizing, and applying a blur filter, 
-              it creates a glowing silhouette using your specific gradient colors.
-            */}
-            <span 
-              className="absolute inset-0 text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-[#09E5E5] to-[#A8FF57] bg-clip-text text-transparent blur-md select-none opacity-70 transform translate-y-[2px]"
-              aria-hidden="true"
+          <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
+            <span
+              style={{
+                textShadow: '0 0 1rem #09E5E5, 0 0 3rem #8FEA3D',
+                display: 'inline-block',
+              }}
             >
-              Let’s light up the depths.
+              <WordRevealText
+                text={fullText}
+                tag="span"
+                className="inline-block"
+                staggerAmount={0.040}
+                duration={0.35}
+                start="top 85%"
+                ease="power3.out"
+              />
             </span>
-
-            {/* Core White Text Layer with a subtle white text-shadow for crispness */}
-            <h2 className="relative text-4xl md:text-6xl font-bold tracking-tight text-white z-10 [text-shadow:0_0_8px_rgba(255,255,255,0.3)]">
-              Let’s light up the depths.
-            </h2>
-          </div>
+          </h2>
         </div>
 
         <p className="text-white/80 text-sm md:text-[18px] max-w-2xl mx-auto leading-relaxed font-medium">

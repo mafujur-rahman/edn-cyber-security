@@ -123,18 +123,14 @@ const ProtectionShowcase = () => {
 
       <div className="relative z-30 pt-20 text-center">
         <div className="relative inline-block">
-          <span
-            className="absolute inset-0 -z-10 blur-[25px] rounded-full opacity-45"
-            style={{
-              background: 'linear-gradient(90deg, #09E5E5, #A8FF57)',
-              filter: 'blur(30px)'
-            }}
-          />
           <p
             ref={topTextRef}
             className="text-lg md:text-2xl lg:text-6xl font-bold leading-[1.1] tracking-wide text-white opacity-0"
+            style={{
+                textShadow: '0 0 .5rem #111, 0 0 .5rem #06B6B6, 0 0 3rem #06B6B6, 0 0 7.5rem #8FEA3D',
+              }}
           >
-            It's time for a new approach.
+            It’s time for a new approach.
           </p>
         </div>
       </div>

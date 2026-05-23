@@ -184,7 +184,7 @@ export default function PresentationSection() {
         {/* Video Container with Black Overlay - Full width within max-w-6xl */}
         <div className="relative w-full max-w-6xl mx-auto">
           {/* Black overlay around video */}
-          <div className="absolute inset-0 bg-black/40 rounded-2xl z-[1] pointer-events-none"></div>
+          <div className="absolute inset-0  rounded-2xl z-[1] pointer-events-none"></div>
           
           <div className="w-full aspect-video flex items-center justify-center">
             <video

@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import { GradientButton } from "@/components/utils/GradiantButton";
+import WordRevealText from "@/components/utils/WordRevealText";
+
 
 const faqs = [
     {
@@ -189,18 +191,31 @@ export default function FAQSection() {
     };
 
     return (
-        <section className="relative w-full bg-black py-28 lg:py-32 px-6 overflow-visible"> {/* Changed from overflow-hidden to overflow-visible */}
+        <section className="relative w-full bg-black py-28 lg:py-32 px-6 overflow-visible">
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-20 items-start">
 
                 {/* LEFT SIDE - PINNED */}
                 <div className="lg:col-span-5 lg:sticky lg:top-24 flex flex-col gap-6">
-                    <h2 className="text-3xl md:text-3xl lg:text-5xl font-bold tracking-tight text-white leading-[1.05]">
-                        Still have questions?
-                        <br />
-                        <span className="text-white/60">
-                            Let’s clear things up.
-                        </span>
-                    </h2>
+                    <div className="flex flex-col">
+                        <WordRevealText
+                            text="Still have questions?"
+                            className="text-3xl md:text-3xl lg:text-5xl font-bold tracking-tight text-white leading-[1.05]"
+                            tag="h2"
+                            staggerAmount={0.040}
+                            duration={0.30}
+                            start="top 85%"
+                            ease="power3.out"
+                        />
+                        <WordRevealText
+                            text="Let’s clear things up."
+                            className="text-3xl md:text-3xl lg:text-5xl font-bold tracking-tight text-white leading-[1.05] mt-2"
+                            tag="h2"
+                            staggerAmount={0.040}
+                            duration={0.35}
+                            start="top 85%"
+                            ease="power3.out"
+                        />
+                    </div>
 
                     <p className="text-white/80 text-base md:text-lg leading-relaxed max-w-md">
                         Here are answers to the most common questions security teams ask when exploring EDN.
@@ -229,12 +244,12 @@ export default function FAQSection() {
                                     bg-black
                                     overflow-hidden
                                     transition-all duration-300
-                                    
+                                    hover:border-white/50
                                 `}
                             >
                                 <button
                                     onClick={() => toggleFAQ(index)}
-                                    className="w-full px-6 md:px-7 py-6 flex items-start justify-between gap-5 text-left"
+                                    className="w-full px-6 md:px-7 py-6 flex items-center justify-between gap-5 text-left"
                                 >
                                     <span className="text-white text-lg md:text-[20px] font-semibold tracking-tight leading-snug">
                                         {faq.question}

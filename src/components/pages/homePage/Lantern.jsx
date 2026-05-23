@@ -1,6 +1,8 @@
 "use client";
 import { GradientButton } from '@/components/utils/GradiantButton';
+import WordRevealText from '@/components/utils/WordRevealText';
 import React, { useState, useRef } from 'react';
+
 
 export default function LanternSection() {
   const [isLooping, setIsLooping] = useState(false);
@@ -13,15 +15,34 @@ export default function LanternSection() {
     setIsLooping(true);
   };
 
+  // Split text into parts
+  const textBefore = "We have";
+  const highlightText = "way more";
+  const textAfter = "to offer: monitor your attack surface with Lantern";
+
   return (
     <section className="relative w-full bg-black pt-12 pb-32 px-6 flex flex-col items-center overflow-hidden">
 
       <div className="relative z-10 text-center max-w-4xl mb-0">
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-6">
-          We have <span className="relative">way more
-            <span className="absolute inset-0 blur-lg bg-gradient-to-r from-[#09E5E5] to-[#A8FF57] opacity-25 rounded-full px-2" />
-          </span> to offer: <br />
-          monitor your attack surface with Lantern
+          {textBefore}{" "}
+          <span
+            style={{
+              textShadow: '0 0 1rem #09E5E5, 0 0 3rem #8FEA3D',
+              display: 'inline-block',
+            }}
+          >
+            <WordRevealText
+              text={highlightText}
+              tag="span"
+              className="inline-block"
+              staggerAmount={0.040}
+              duration={0.35}
+              start="top 85%"
+              ease="power3.out"
+            />
+          </span>{" "}
+          {textAfter}
         </h2>
         <p className="text-white/60 text-sm md:text-[20px] max-w-3xl mx-auto leading-relaxed ">
           Combine credential deception with external attack surface management for full-spectrum protection.

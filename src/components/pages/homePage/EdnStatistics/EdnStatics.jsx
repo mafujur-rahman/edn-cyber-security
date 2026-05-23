@@ -1,5 +1,14 @@
 "use client";
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useLayoutEffect } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import WordRevealText from '@/components/utils/WordRevealText';
+
+
+// Register ScrollTrigger plugin
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const stats = [
   { value: "1B+", label: "Processed login attempts." },
@@ -15,6 +24,12 @@ const GridPoint = () => (
 
 export default function EdnStatistics() {
   const statsContainerRef = useRef(null);
+  const sectionRef = useRef(null);
+  const titleContainerRef = useRef(null);
+  const gradientRef = useRef(null);
+  const numbersRef = useRef([]);
+  const labelsRef = useRef([]);
+  
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
 
@@ -27,8 +42,85 @@ export default function EdnStatistics() {
     });
   };
 
+  useLayoutEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+
+    const ctx = gsap.context(() => {
+      // Create a master timeline for scroll-triggered animations
+      const masterTimeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 80%",
+          end: "bottom 20%",
+          toggleActions: "play none none reset",
+        }
+      });
+
+      // 1. FADE-IN ANIMATION FOR NUMBERS with scroll trigger
+      const numbers = numbersRef.current.filter(el => el);
+      if (numbers.length) {
+        masterTimeline.fromTo(numbers,
+          { opacity: 0, y: 30, scale: 0.9 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.8,
+            stagger: 0.15,
+            ease: "power3.out",
+          },
+          0.2
+        );
+      }
+
+      // 2. WORD-BY-WORD REVEAL FOR EACH LABEL with scroll trigger
+      labelsRef.current.forEach((labelContainer, idx) => {
+        if (!labelContainer) return;
+        const words = labelContainer.querySelectorAll('.label-word');
+        if (words.length) {
+          masterTimeline.fromTo(words,
+            { opacity: 0, x: 20 },
+            {
+              opacity: 1,
+              x: 0,
+              duration: 0.5,
+              stagger: 0.06,
+              ease: "power2.out",
+            },
+            0.5 + (idx * 0.1)
+          );
+        }
+      });
+
+      // 3. LEFT-TO-RIGHT GRADIENT ANIMATION after text animations
+      if (gradientRef.current) {
+        // Set initial state
+        gsap.set(gradientRef.current, { 
+          x: "-100%",
+          opacity: 1
+        });
+        
+        masterTimeline.to(gradientRef.current, {
+          x: "100%",
+          duration: 1.5,
+          ease: "power2.inOut",
+          onComplete: () => {
+            gsap.to(gradientRef.current, {
+              opacity: 0,
+              duration: 0.3,
+              ease: "power2.out"
+            });
+          }
+        }, 1.0);
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="relative w-full my-20 bg-black py-20 overflow-hidden font-sans">
+    <section ref={sectionRef} className="relative w-full my-20 bg-black py-20 overflow-hidden font-sans">
       
       {/* BACKGROUND: Carbon Pattern */}
       <div className="absolute inset-0 z-0">
@@ -66,11 +158,20 @@ export default function EdnStatistics() {
         {/* MIDDLE CONTENT ROW - The Stats */}
         <div className="flex flex-col md:flex-row bg-black/30 border-b border-white/10 min-h-[150px] relative">
           
-          {/* Title Box - bg image visible here */}
-          <div className="md:w-[35%] py-24 flex items-center bg-transparent border-r border-white/10 relative px-12">
-            <h2 className="text-5xl font-bold tracking-tight text-white leading-tight relative z-10">
-              Why <span className="text-white/80">EDN?</span>
-            </h2>
+          {/* Title Box - Using character-by-character reveal component */}
+          <div 
+            ref={titleContainerRef}
+            className="md:w-[35%] py-24 flex items-center bg-transparent border-r border-white/10 relative px-12"
+          >
+            <WordRevealText 
+              text="Why EDN?"
+              className="text-5xl font-bold tracking-tight text-white leading-tight relative z-10"
+              tag="h2"
+              staggerAmount={0.040}
+              duration={0.35}
+              start="top 85%"
+              ease="power3.out"
+            />
             <div className="absolute right-0 bottom-0"><GridPoint /></div>
           </div>
 
@@ -84,6 +185,19 @@ export default function EdnStatistics() {
           >
             {/* Default black background for stats area */}
             <div className="absolute inset-0 bg-black z-0" />
+            
+            {/* Container for gradient - positioned to cover only the middle three cards area */}
+            <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
+              {/* Gradient that animates left to right across the stats cards */}
+              <div 
+                ref={gradientRef}
+                className="absolute inset-y-0 w-full"
+                style={{
+                  background: "linear-gradient(90deg, transparent, rgba(9,229,229,0.25), rgba(168,255,87,0.2), rgba(9,229,229,0.25), transparent)",
+                  opacity: 0,
+                }}
+              />
+            </div>
             
             {/* Single smooth blended gradient - no visible center, just a soft glow */}
             <div 
@@ -99,21 +213,50 @@ export default function EdnStatistics() {
               }}
             />
             
-            {/* Stats Cards */}
-            {stats.map((stat, idx) => (
-              <div key={idx} className="relative p-12 flex flex-col justify-center border-r last:border-r-0 border-white/10 z-20">
-                <div className="mb-3 flex items-baseline">
-                  <span className="text-6xl font-black text-white tracking-tighter">
-                    {stat.value.replace('+', '')}
-                  </span>
-                  <span className="text-2xl font-light text-white/30 ml-1">+</span>
+            {/* Stats Cards - with consistent alignment */}
+            {stats.map((stat, idx) => {
+              const numericValue = stat.value.replace('+', '');
+              const hasPlus = stat.value.includes('+');
+              
+              return (
+                <div key={idx} className="relative p-12 flex flex-col border-r last:border-r-0 border-white/10 z-20">
+                  {/* Number container - fade-in animation (staying here) */}
+                  <div className="flex-shrink-0">
+                    <div 
+                      ref={el => numbersRef.current[idx] = el}
+                      className="flex items-baseline opacity-0"
+                    >
+                      <span className="text-6xl font-black text-white tracking-tighter whitespace-nowrap">
+                        {numericValue}
+                      </span>
+                      {hasPlus && (
+                        <span className="text-2xl font-light text-white/30 ml-1">+</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Label container - word reveal animation (staying here) */}
+                  <div className="flex-1 mt-4">
+                    <div 
+                      ref={el => labelsRef.current[idx] = el}
+                      className="text-sm leading-relaxed text-zinc-300 font-medium tracking-wide"
+                    >
+                      {stat.label.split(' ').map((word, wordIdx) => (
+                        <span 
+                          key={wordIdx} 
+                          className="label-word inline-block opacity-0"
+                          style={{ marginRight: "0.25em" }}
+                        >
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="absolute right-0 bottom-0"><GridPoint /></div>
                 </div>
-                <p className="text-sm leading-relaxed text-zinc-300 font-medium tracking-wide">
-                  {stat.label}
-                </p>
-                <div className="absolute right-0 bottom-0"><GridPoint /></div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

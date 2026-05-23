@@ -60,15 +60,14 @@ const CinematicHero = () => {
         {/* Hero Content */}
         <div ref={contentRef} className="flex-1 w-full max-w-7xl px-8 flex flex-col items-center justify-end pb-32">
           <h1 className="text-[40px] md:text-6xl font-bold text-center leading-[1.1] mb-10 tracking-tight">
-            The smartest way <span className="relative text-white inline-block">
+            The smartest way{" "}
+            <span
+              className="inline-block text-white"
+              style={{
+                textShadow: '0 0 .5rem #111, 0 0 .5rem #06B6B6, 0 0 3rem #06B6B6, 0 0 7.5rem #8FEA3D',
+              }}
+            >
               to end credential threats.
-              <span
-                className="absolute inset-0 -z-10 blur-[25px] rounded-full opacity-45"
-                style={{
-                  background: 'linear-gradient(90deg, #09E5E5, #A8FF57)',
-                  filter: 'blur(30px)'
-                }}
-              />
             </span>
           </h1>
 

@@ -1,7 +1,16 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useLayoutEffect } from "react";
 import Image from "next/image";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import WordRevealText from "@/components/utils/WordRevealText";
+
+
+// Register ScrollTrigger plugin
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const investors = [
   {
@@ -33,6 +42,9 @@ const GridDot = ({ className = "", style = {} }) => (
 
 export default function StrategicInvestors() {
   const logosContainerRef = useRef(null);
+  const sectionRef = useRef(null);
+  const cardsContainerRef = useRef(null);
+  const revealOverlayRef = useRef(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
 
@@ -45,26 +57,89 @@ export default function StrategicInvestors() {
     });
   };
 
+  useLayoutEffect(() => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+
+    const ctx = gsap.context(() => {
+      // Left-to-right reveal animation for the middle three cards
+      if (revealOverlayRef.current && cardsContainerRef.current) {
+        // Set initial state - hidden (width 0)
+        gsap.set(revealOverlayRef.current, {
+          width: "0%",
+          opacity: 1,
+        });
+
+        // Create scroll-triggered animation
+        ScrollTrigger.create({
+          trigger: cardsContainerRef.current,
+          start: "top 80%",
+          end: "top 40%",
+          onEnter: () => {
+            gsap.to(revealOverlayRef.current, {
+              width: "100%",
+              duration: 1.2,
+              ease: "power2.inOut",
+              onComplete: () => {
+                gsap.to(revealOverlayRef.current, {
+                  opacity: 0,
+                  duration: 0.3,
+                  ease: "power2.out",
+                });
+              },
+            });
+          },
+          onEnterBack: () => {
+            // Reset and play again when scrolling back up
+            gsap.set(revealOverlayRef.current, {
+              width: "0%",
+              opacity: 1,
+            });
+            gsap.to(revealOverlayRef.current, {
+              width: "100%",
+              duration: 1.2,
+              ease: "power2.inOut",
+              onComplete: () => {
+                gsap.to(revealOverlayRef.current, {
+                  opacity: 0,
+                  duration: 0.3,
+                  ease: "power2.out",
+                });
+              },
+            });
+          },
+        });
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="relative overflow-hidden bg-black py-48 md:py-64 my-20">
+    <section ref={sectionRef} className="relative overflow-hidden bg-black py-48 md:py-64 my-20">
       <div className="relative z-10 mx-auto max-w-7xl px-6">
-        {/* Heading */}
+        {/* Heading with Word Reveal Animation */}
         <div className="mb-20">
-          <h2 className="text-center text-3xl md:text-[52px] font-medium tracking-tight text-white z-20">
-            Backed by strategic investors
-          </h2>
+          <WordRevealText
+            text="Backed by strategic investors"
+            className="text-center text-3xl md:text-[52px] font-medium tracking-tight text-white z-20"
+            tag="h2"
+            staggerAmount={0.040}
+            duration={0.35}
+            start="top 85%"
+            ease="power3.out"
+          />
         </div>
 
         {/* 5-Column Grid Layout */}
         <div className="relative w-full">
-          
           {/* Internal Vertical Lines at 20%, 40%, 60%, 80% */}
           {[20, 40, 60, 80].map((leftPos) => (
-    <div
-      key={leftPos}
-      className="absolute -top-64 -bottom-64 w-px bg-white/[0.08] z-20"
-      style={{ left: `${leftPos}%` }}
-    />
+            <div
+              key={leftPos}
+              className="absolute -top-64 -bottom-64 w-px bg-white/[0.08] z-20"
+              style={{ left: `${leftPos}%` }}
+            />
           ))}
 
           {/* Horizontal Lines */}
@@ -85,7 +160,7 @@ export default function StrategicInvestors() {
             <div className="hidden md:block relative" />
 
             {/* 2nd, 3rd, 4th Columns: Logos - treated as ONE combined area */}
-            <div 
+            <div
               ref={logosContainerRef}
               className="relative md:col-span-3 flex"
               onMouseMove={handleMouseMove}
@@ -94,9 +169,19 @@ export default function StrategicInvestors() {
             >
               {/* Default black background for the entire 3-column area */}
               <div className="absolute inset-0 bg-black z-0" />
-              
+
+              {/* Left-to-right reveal overlay animation */}
+              <div
+                ref={revealOverlayRef}
+                className="absolute inset-y-0 left-0 z-15 pointer-events-none overflow-hidden"
+                style={{
+                  width: "0%",
+                  background: "linear-gradient(90deg, rgba(9,229,229,0.15), rgba(168,255,87,0.1), transparent)",
+                }}
+              />
+
               {/* Single smooth blended gradient - follows cursor across all 3 columns */}
-              <div 
+              <div
                 className="absolute inset-0 z-10 pointer-events-none transition-opacity duration-200"
                 style={{
                   opacity: isHovering ? 1 : 0,
@@ -108,7 +193,7 @@ export default function StrategicInvestors() {
                   )`,
                 }}
               />
-              
+
               {/* The three logo boxes with border-right on all except last */}
               {investors.map((investor, idx) => (
                 <div
