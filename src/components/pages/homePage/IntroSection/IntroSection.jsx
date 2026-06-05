@@ -212,16 +212,40 @@ const ProtectionShowcase = () => {
   return (
     <div ref={containerRef} className="text-white relative py-0 overflow-visible bg-black">
       <style jsx global>{`
+        .image-card {
+          overflow: hidden;
+        }
         .image-card img {
           width: 100%;
           height: 100%;
           object-fit: cover;
+          display: block;
         }
         .dynamic-glow-card {
           --glow-opacity: 0;
           --glow-scale: 0.5;
           --border-glow: 0;
           transition: border-color 0.3s ease;
+        }
+        
+        /* Glass card styling matching .home_feature_item */
+        .glass-card-enhanced {
+          z-index: 5;
+          -webkit-backdrop-filter: blur(2rem);
+          backdrop-filter: blur(2rem);
+          background-image: url('https://cdn.prod.website-files.com/68946a7…/68c966b…_pattern-feature.webp');
+          background-repeat: no-repeat;
+          background-size: cover;
+          padding: 7rem 3rem;
+          position: relative;
+          background-color: rgba(0, 0, 0, 0.4);
+          background-blend-mode: overlay;
+        }
+        
+        /* Remove any border styles from image cards */
+        .image-card {
+          border: none !important;
+          box-shadow: none !important;
         }
       `}</style>
 
@@ -457,16 +481,16 @@ const ProtectionShowcase = () => {
 const ImageCard = ({ src, alt, rotation = "", width = "w-96", height = "h-40", cardRef }) => (
   <div 
     ref={cardRef}
-    className={`${width} ${height} relative ${rotation} overflow-visible image-card rounded-sm bg-gradient-to-br from-zinc-900 to-black border border-white/20 shadow-2xl`}
+    className={`${width} ${height} relative ${rotation} overflow-hidden image-card`}
   >
-    <img src={src} alt={alt} className="w-full h-full object-cover opacity-80 rounded-sm" />
+    <img src={src} alt={alt} className="w-full h-full object-cover" />
   </div>
 );
 
 const GlassCard = ({ cardRef, title, desc, side = "left" }) => (
   <div 
     ref={cardRef}
-    className={`relative p-6 sm:p-8 md:p-10 bg-gradient-to-br from-zinc-900/90 to-black/90 border border-white/20 backdrop-blur-sm rounded-sm min-h-[280px] sm:min-h-[320px] flex flex-col justify-center ${side === 'right' ? 'text-right items-end' : 'text-left items-start'} shadow-2xl w-full h-full overflow-visible`}
+    className={`relative p-6 sm:p-8 md:p-10 border border-white/20 rounded-sm min-h-[280px] sm:min-h-[320px] flex flex-col justify-center ${side === 'right' ? 'text-right items-end' : 'text-left items-start'} shadow-2xl w-full h-full overflow-visible glass-card-enhanced`}
   >
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-4 sm:mb-6 relative z-10">
       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-zinc-900 border border-white/20 rounded-lg flex items-center justify-center shadow-2xl shrink-0">
