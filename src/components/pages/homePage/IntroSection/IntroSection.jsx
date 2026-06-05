@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
@@ -390,7 +391,7 @@ const ProtectionShowcase = () => {
           </div>
         </div>
 
-        {/* SECTION 4 (FINAL CTA CARD) - With properly visible corner squares */}
+        {/* SECTION 4 (FINAL CTA CARD) */}
         <div className="reveal-card flex justify-center pb-16 sm:pb-40 px-4 sm:px-6 -mt-[300px] sm:-mt-[400px]">
           <div 
             ref={finalCardRef}
@@ -402,11 +403,10 @@ const ProtectionShowcase = () => {
               borderBottomColor: 'rgba(153, 255, 51, var(--border-glow, 0))'
             }}
           >
-            {/* Glow effect covering half the card height */}
             <div 
               className="absolute pointer-events-none top-0 left-0 right-0 transition-transform duration-100 ease-out opacity-0 blur-3xl mix-blend-screen"
               style={{
-                background: 'radial-gradient(ellipse at 50% 0%, rgba(0, 229, 229, 0.5) 0%, rgba(57, 242, 161, 0.2) 50%, transparent 80%)',
+                background: 'radial-gradient(ellipse at 50% 0%, rgba(0, 229, 229, 0.5) 0%, rgba(57, 242, 161, 0.2) 40%, transparent 70%)',
                 height: '50%',
                 opacity: 'var(--glow-opacity)',
                 transform: 'scaleY(var(--glow-scale))',
@@ -414,7 +414,6 @@ const ProtectionShowcase = () => {
               }}
             />
 
-            {/* Smooth edge horizon accent */}
             <div 
               className="absolute top-0 left-1/6 right-1/6 h-[2px] transition-opacity duration-200 pointer-events-none"
               style={{
@@ -425,7 +424,6 @@ const ProtectionShowcase = () => {
 
             <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay rounded-sm" />
             
-            {/* Corner squares - fully visible outside the card */}
             <div className="absolute -top-[2px] -left-[2px] w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white rotate-45 z-20" />
             <div className="absolute -top-[2px] -right-[2px] w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white rotate-45 z-20" />
             <div className="absolute -bottom-[2px] -left-[2px] w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white rotate-45 z-20" />
@@ -487,7 +485,7 @@ const GlassCard = ({ cardRef, title, desc, side = "left" }) => (
 
 export default function IntroSection() {
   const containerRef = useRef(null);
-  const gradientRef = useRef(null);
+  const topGradientRef = useRef(null);
   const introTextRef = useRef(null);
   const protectionShowcaseRef = useRef(null);
 
@@ -497,6 +495,16 @@ export default function IntroSection() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      const topGradientElement = topGradientRef.current;
+
+      // Set initial hidden state - completely invisible with no color showing
+      gsap.set(topGradientElement, {
+        opacity: 0,
+        width: "0%",
+        height: "0rem",
+        scale: 0,
+      });
+
       const mainTl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
@@ -521,9 +529,22 @@ export default function IntroSection() {
         }
       });
 
-      mainTl.fromTo(gradientRef.current,
-        { scaleY: 0, opacity: 0 },
-        { scaleY: 1, opacity: 1, duration: 1.2, ease: "power3.out" },
+      // Top gradient expand animation - starts completely invisible and grows
+      mainTl.fromTo(topGradientElement,
+        {
+          opacity: 0,
+          width: "0%",
+          height: "0rem",
+          scale: 0,
+        },
+        {
+          opacity: 1,
+          width: "80%",
+          height: "25rem",
+          scale: 1,
+          duration: 1.2,
+          ease: "power2.out",
+        },
         0
       );
 
@@ -575,31 +596,39 @@ export default function IntroSection() {
     <div className="bg-black">
       <main ref={containerRef} className="min-h-screen">
         <section className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden px-6">
-          <div
-            ref={gradientRef}
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1400px] pointer-events-none origin-top"
-            style={{ transform: "scaleY(0)", opacity: 0 }}
-          >
-            <div className="relative w-full">
-              <div
-                className="w-full"
-                style={{
-                  height: "240px",
-                  background: `
-                    linear-gradient(to bottom, rgba(0,0,0,0) 0%, #000000 100%),
-                    linear-gradient(to right, rgba(0, 229, 229, 0.2) 0%, rgba(57, 242, 161, 0.15) 50%, rgba(153, 255, 51, 0.2) 100%)
-                  `,
-                  backgroundBlendMode: "screen",
-                  maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)'
-                }}
-              />
-            </div>
+          {/* Top Pinning Gradient Animation - Expands from nothing */}
+          <div className="absolute top-0 left-0 right-0 flex justify-center pointer-events-none z-0">
+            <div
+              ref={topGradientRef}
+              style={{
+                opacity: 0,
+                width: "0%",
+                height: "0rem",
+                scale: 0,
+                maxWidth: "80rem",
+                position: "absolute",
+                top: "-15rem",
+                background: "radial-gradient(circle at center, rgba(0, 229, 229, 0.5) 0%, rgba(57, 242, 161, 0.4) 40%, rgba(153, 255, 51, 0.3) 70%, transparent 100%)",
+                filter: "blur(6rem)",
+                borderRadius: "50%",
+                transformOrigin: "center center",
+              }}
+            />
           </div>
+
+          {/* Soft ambient glow from top */}
+          <div 
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 pointer-events-none z-0 opacity-0"
+            style={{
+              height: "150px",
+              background: "radial-gradient(ellipse at center top, rgba(57, 242, 161, 0.2), transparent 75%)",
+              filter: "blur(25px)",
+            }}
+          />
 
           <div
             ref={introTextRef}
-            className="z-10 w-full px-6 md:px-10"
+            className="z-10 w-full px-6 md:px-10 relative"
             style={{ opacity: 0 }}
           >
             <div className="flex items-center justify-center">

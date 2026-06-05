@@ -4,7 +4,6 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import WordRevealText from '@/components/utils/WordRevealText';
 
-
 // Register ScrollTrigger plugin
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -27,8 +26,10 @@ export default function EdnStatistics() {
   const sectionRef = useRef(null);
   const titleContainerRef = useRef(null);
   const gradientRef = useRef(null);
+  const gradientLightRef = useRef(null);
   const numbersRef = useRef([]);
   const labelsRef = useRef([]);
+  const hoverLightRef = useRef(null);
   
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
@@ -36,10 +37,42 @@ export default function EdnStatistics() {
   const handleMouseMove = (e) => {
     if (!statsContainerRef.current) return;
     const rect = statsContainerRef.current.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setMousePosition({ x, y });
+    
+    // Animate the hover light with GSAP for smooth following
+    if (hoverLightRef.current) {
+      gsap.to(hoverLightRef.current, {
+        x: x,
+        y: y,
+        duration: 0.2,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovering(true);
+    if (hoverLightRef.current) {
+      gsap.to(hoverLightRef.current, {
+        opacity: 1,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    if (hoverLightRef.current) {
+      gsap.to(hoverLightRef.current, {
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
   };
 
   useLayoutEffect(() => {
@@ -93,18 +126,20 @@ export default function EdnStatistics() {
         }
       });
 
-      // 3. LEFT-TO-RIGHT GRADIENT ANIMATION after text animations
+      // 3. LEFT-TO-RIGHT GRADIENT ANIMATION with blur
       if (gradientRef.current) {
-        // Set initial state
+        // Set initial state - off screen left
         gsap.set(gradientRef.current, { 
-          x: "-100%",
-          opacity: 1
+          x: "-150%",
+          opacity: 0,
+          willChange: "transform"
         });
         
         masterTimeline.to(gradientRef.current, {
-          x: "100%",
+          x: "150%",
           duration: 1.5,
           ease: "power2.inOut",
+          opacity: 1,
           onComplete: () => {
             gsap.to(gradientRef.current, {
               opacity: 0,
@@ -158,7 +193,7 @@ export default function EdnStatistics() {
         {/* MIDDLE CONTENT ROW - The Stats */}
         <div className="flex flex-col md:flex-row bg-black/30 border-b border-white/10 min-h-[150px] relative">
           
-          {/* Title Box - Using character-by-character reveal component */}
+          {/* Title Box */}
           <div 
             ref={titleContainerRef}
             className="md:w-[35%] py-16 flex items-center bg-transparent border-r border-white/10 relative px-12"
@@ -175,52 +210,65 @@ export default function EdnStatistics() {
             <div className="absolute right-0 bottom-0"><GridPoint /></div>
           </div>
 
-          {/* Stats Boxes Container - with smooth light effect following cursor */}
+          {/* Stats Boxes Container */}
           <div 
             ref={statsContainerRef}
             className="md:w-[65%] grid grid-cols-1 md:grid-cols-3 relative"
             onMouseMove={handleMouseMove}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            style={{ overflow: 'hidden' }}
           >
             {/* Default black background for stats area */}
             <div className="absolute inset-0 bg-black z-0" />
             
-            {/* Container for gradient - positioned to cover only the middle three cards area */}
-            <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
-              {/* Gradient that animates left to right across the stats cards */}
-              <div 
-                ref={gradientRef}
-                className="absolute inset-y-0 w-full"
-                style={{
-                  background: "linear-gradient(90deg, transparent, rgba(9,229,229,0.25), rgba(168,255,87,0.2), rgba(9,229,229,0.25), transparent)",
-                  opacity: 0,
-                }}
-              />
-            </div>
-            
-            {/* Single smooth blended gradient - no visible center, just a soft glow */}
-            <div 
-              className="absolute inset-0 z-10 pointer-events-none transition-opacity duration-200"
+            {/* Left-to-Right Gradient Light */}
+            <div
+              ref={gradientRef}
+              className="highlight_grid_light pointer-events-none absolute top-0 left-0 z-[5]"
               style={{
-                opacity: isHovering ? 1 : 0,
-                background: `radial-gradient(circle 400px at ${mousePosition.x}px ${mousePosition.y}px, 
-                  rgba(9,229,229,0.12) 0%, 
-                  rgba(9,229,229,0.06) 25%,
-                  rgba(168,255,87,0.04) 50%,
-                  transparent 80%
-                )`,
+                aspectRatio: '1',
+                backgroundColor: 'var(--primary)',
+                filter: 'blur(8rem)',
+                borderRadius: '99rem',
+                width: '30%',
+                height: 'auto',
+                opacity: 0,
+                willChange: 'transform',
+                transformStyle: 'preserve-3d',
+                background: 'radial-gradient(circle, #00E5E5 0%, #99FF33 100%)',
               }}
             />
             
-            {/* Stats Cards - with consistent alignment */}
+            {/* Hover Light Effect - follows cursor */}
+            <div
+              ref={hoverLightRef}
+              className="highlight_grid_light-2 pointer-events-none absolute top-0 left-0 z-10"
+              style={{
+                aspectRatio: '1',
+                backgroundColor: 'var(--primary)',
+                filter: 'blur(8rem)',
+                borderRadius: '99rem',
+                width: '30%',
+                height: 'auto',
+                position: 'absolute',
+                left: '0%',
+                right: 'auto',
+                opacity: 0,
+                transform: 'translate(-50%, -50%)',
+                transformStyle: 'preserve-3d',
+                willChange: 'transform',
+                background: 'radial-gradient(circle, #00E5E5 0%, #99FF33 100%)',
+              }}
+            />
+            
+            {/* Stats Cards */}
             {stats.map((stat, idx) => {
               const numericValue = stat.value.replace('+', '');
-              const hasPlus = stat.value.includes('+');
               
               return (
                 <div key={idx} className="relative p-12 flex flex-col border-r last:border-r-0 border-white/10 z-20">
-                  {/* Number container - fade-in animation (staying here) */}
+                  {/* Number container */}
                   <div className="flex-shrink-0">
                     <div 
                       ref={el => numbersRef.current[idx] = el}
@@ -232,7 +280,7 @@ export default function EdnStatistics() {
                     </div>
                   </div>
                   
-                  {/* Label container - word reveal animation (staying here) */}
+                  {/* Label container */}
                   <div className="flex-1 mt-4">
                     <div 
                       ref={el => labelsRef.current[idx] = el}
@@ -257,9 +305,8 @@ export default function EdnStatistics() {
           </div>
         </div>
 
-        {/* BOTTOM DECORATIVE ROW - with vertical line on the right side of 960k+ */}
+        {/* BOTTOM DECORATIVE ROW */}
         <div className="hidden md:flex h-48 relative">
-          {/* Vertical line positioned at 35% (right side of 960k+ area) */}
           <div className="absolute left-[35%] top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/40 to-transparent z-20" />
           
           <div className="w-[35%] border-r border-white/10 relative p-8">

@@ -44,6 +44,7 @@ export default function StrategicInvestors() {
   const sectionRef = useRef(null);
   const cardsContainerRef = useRef(null);
   const gradientRef = useRef(null);
+  const hoverLightRef = useRef(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const animationTriggeredRef = useRef(false);
@@ -51,10 +52,42 @@ export default function StrategicInvestors() {
   const handleMouseMove = (e) => {
     if (!logosContainerRef.current) return;
     const rect = logosContainerRef.current.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setMousePosition({ x, y });
+    
+    // Animate the hover light with GSAP for smooth following
+    if (hoverLightRef.current) {
+      gsap.to(hoverLightRef.current, {
+        x: x,
+        y: y,
+        duration: 0.2,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovering(true);
+    if (hoverLightRef.current) {
+      gsap.to(hoverLightRef.current, {
+        opacity: 1,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    if (hoverLightRef.current) {
+      gsap.to(hoverLightRef.current, {
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
   };
 
   // Function to trigger the animation
@@ -70,26 +103,25 @@ export default function StrategicInvestors() {
     // Kill any existing animations on this element
     gsap.killTweensOf(gradientRef.current);
 
-    // Set initial position
-    gsap.set(gradientRef.current, {
-      x: "-100%",
+    // Set initial position - off screen left with opacity 1
+    gsap.set(gradientRef.current, { 
+      x: "-150%",
       opacity: 1,
+      willChange: "transform"
     });
-
-    // Animate
+    
+    // Animate from left to right
     gsap.to(gradientRef.current, {
-      x: "100%",
+      x: "150%",
       duration: 1.5,
       ease: "power2.inOut",
       onComplete: () => {
-        if (gradientRef.current) {
-          gsap.to(gradientRef.current, {
-            opacity: 0,
-            duration: 0.3,
-            ease: "power2.out",
-          });
-        }
-      },
+        gsap.to(gradientRef.current, {
+          opacity: 0,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      }
     });
   };
 
@@ -208,34 +240,50 @@ export default function StrategicInvestors() {
               ref={logosContainerRef}
               className="relative md:col-span-3 flex"
               onMouseMove={handleMouseMove}
-              onMouseEnter={() => setIsHovering(true)}
-              onMouseLeave={() => setIsHovering(false)}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              style={{ overflow: 'hidden' }}
             >
               {/* Default black background for the entire 3-column area */}
               <div className="absolute inset-0 bg-black z-0" />
 
-              {/* Container for left-to-right gradient animation */}
-              <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
-                <div
-                  ref={gradientRef}
-                  className="absolute inset-y-0 w-full"
-                  style={{
-                    background: "linear-gradient(90deg, transparent, rgba(9,229,229,0.25), rgba(168,255,87,0.2), rgba(9,229,229,0.25), transparent)",
-                  }}
-                />
-              </div>
-
-              {/* Single smooth blended gradient - follows cursor across all 3 columns */}
+              {/* Left-to-Right Gradient Light - Same as EDNStatistics */}
               <div
-                className="absolute inset-0 z-10 pointer-events-none transition-opacity duration-200"
+                ref={gradientRef}
+                className="highlight_grid_light pointer-events-none absolute top-0 left-0 z-[5]"
                 style={{
-                  opacity: isHovering ? 1 : 0,
-                  background: `radial-gradient(circle 400px at ${mousePosition.x}px ${mousePosition.y}px, 
-                    rgba(9,229,229,0.12) 0%, 
-                    rgba(9,229,229,0.06) 25%,
-                    rgba(168,255,87,0.04) 50%,
-                    transparent 80%
-                  )`,
+                  aspectRatio: '1',
+                  backgroundColor: 'var(--primary)',
+                  filter: 'blur(8rem)',
+                  borderRadius: '99rem',
+                  width: '30%',
+                  height: 'auto',
+                  opacity: 0,
+                  willChange: 'transform',
+                  transformStyle: 'preserve-3d',
+                  background: 'radial-gradient(circle, #00E5E5 0%, #99FF33 100%)',
+                }}
+              />
+
+              {/* Hover Light Effect - follows cursor */}
+              <div
+                ref={hoverLightRef}
+                className="highlight_grid_light-2 pointer-events-none absolute top-0 left-0 z-10"
+                style={{
+                  aspectRatio: '1',
+                  backgroundColor: 'var(--primary)',
+                  filter: 'blur(8rem)',
+                  borderRadius: '99rem',
+                  width: '30%',
+                  height: 'auto',
+                  position: 'absolute',
+                  left: '0%',
+                  right: 'auto',
+                  opacity: 0,
+                  transform: 'translate(-50%, -50%)',
+                  transformStyle: 'preserve-3d',
+                  willChange: 'transform',
+                  background: 'radial-gradient(circle, #00E5E5 0%, #99FF33 100%)',
                 }}
               />
 

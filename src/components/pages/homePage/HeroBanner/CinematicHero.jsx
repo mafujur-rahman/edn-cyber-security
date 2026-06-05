@@ -14,7 +14,7 @@ const CinematicHero = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black text-white font-sans">
       {/* Loop Video */}
-      {/* <video 
+      <video 
         ref={loopVideoRef} 
         autoPlay 
         muted 
@@ -22,8 +22,8 @@ const CinematicHero = () => {
         playsInline 
         className="absolute inset-0 w-full h-full object-cover z-0"
       >
-        <source src="/video/banner-loop.mp4" type="video/mp4" />
-      </video> */}
+        <source src="/video/banner-loop2.mp4" type="video/mp4" />
+      </video>
 
       <div className="relative z-10 w-full h-full flex flex-col items-center">
         {/* Header */}
@@ -33,7 +33,7 @@ const CinematicHero = () => {
               src="/images/home/logo/footer-logo.png"
               alt="MokN Logo"
               width={140}
-              height={40}
+              height={50}
               className="object-contain"
               priority
             />

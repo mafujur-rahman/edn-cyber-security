@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -8,7 +9,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function ScrollingTestimonial() {
   const sectionRef = useRef(null);
   const textRef = useRef(null);
-  const circleRef = useRef(null);
+  const gradientLightRef = useRef(null);
 
   useEffect(() => {
     const textElement = textRef.current;
@@ -21,7 +22,7 @@ export default function ScrollingTestimonial() {
       .join("");
 
     const chars = textElement.querySelectorAll('.char');
-    const circleElement = circleRef.current;
+    const gradientElement = gradientLightRef.current;
 
     // 2. GSAP Animation with ScrollTrigger - slower and smoother
     const tl = gsap.timeline({
@@ -49,24 +50,26 @@ export default function ScrollingTestimonial() {
       0
     );
 
-    // Gradient reveal - slower and smoother
+    // Gradient expand animation - starts with no visible gradient
     tl.fromTo(
-      circleElement,
+      gradientElement,
       {
-        width: "0%",
-        height: "0px",
         opacity: 0,
-        filter: "blur(12px)",
+        filter: "blur(6rem)",
+        width: "0%",
+        height: "0rem",
+        bottom: "-20rem",
       },
       {
-        width: "100%",
-        height: "280px",       // Slightly increased height
         opacity: 1,
-        filter: "blur(12px)",  // Reduced blur for sharper look
-        duration: 3,           // Longer duration for slower reveal
-        ease: "power2.inOut",  // Smooth easing
+        filter: "blur(6rem)",
+        width: "80%",
+        height: "45rem",
+        bottom: "-40rem",
+        duration: 3,
+        ease: "power2.inOut",
       },
-      0.15                    // Small delay after text starts
+      0.15
     );
 
     return () => {
@@ -94,54 +97,40 @@ export default function ScrollingTestimonial() {
         </div>
       </div>
 
-      {/* Straight Bottom Gradient Container - Matching Ethical Den Brand Identity */}
+      {/* Bottom Pinning Gradient Animation - Expands from nothing */}
       <div className="absolute bottom-0 left-0 w-full flex justify-center pointer-events-none">
         <div
-          ref={circleRef}
-          className="relative w-full"
+          ref={gradientLightRef}
+          className="quote_light"
           style={{
-            width: "0%",
-            maxWidth: "1280px",
-            height: "0px",
             opacity: 0,
+            filter: "blur(6rem)",
+            borderRadius: "50%",
+            width: "0%",
+            maxWidth: "80rem",
+            height: "0rem",
+            position: "absolute",
+            top: "auto",
+            bottom: "-20rem",
+            background: "radial-gradient(circle at center, rgba(0, 229, 229, 0.5) 0%, rgba(57, 242, 161, 0.4) 40%, rgba(153, 255, 51, 0.3) 70%, transparent 100%)",
+            transform: "translate3d(0px, 0rem, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg)",
+            transformStyle: "preserve-3d",
+            willChange: "transform, opacity, width, height",
+            transition: "none",
           }}
-        >
-          {/* Main ambient glow fading upwards while maintaining horizontal logo gradient structure */}
-          <div 
-            className="absolute bottom-0 left-0 w-full"
-            style={{
-              height: "280px",
-              background: `
-                linear-gradient(to top, rgba(0, 0, 0, 0) 0%, #000000 100%),
-                linear-gradient(to right, rgba(0, 229, 229, 0.25) 0%, rgba(57, 242, 161, 0.2) 50%, rgba(153, 255, 51, 0.25) 100%)
-              `,
-              backgroundBlendMode: "screen",
-              maskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 85%)",
-              WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 85%)",
-              borderBottom: "none",
-            }}
-          >
-            {/* Sharp accent line at the very bottom with the exact Left-to-Right logo gradient */}
-            <div 
-              className="absolute bottom-0 left-0 w-full"
-              style={{
-                height: "2px",
-                background: "linear-gradient(90deg, transparent 0%, #00E5E5 15%, #39F2A1 50%, #99FF33 85%, transparent 100%)",
-              }}
-            />
-          </div>
-
-          {/* Soft centered ambient flow to unify the layout depth */}
-          <div 
-            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4"
-            style={{
-              height: "140px",
-              background: "radial-gradient(ellipse at center bottom, rgba(57, 242, 161, 0.15), transparent 75%)",
-              filter: "blur(25px)",
-            }}
-          />
-        </div>
+        />
       </div>
+
+      {/* Soft centered ambient flow to unify the layout depth - appears with animation */}
+      <div 
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 pointer-events-none opacity-0 animate-ambient-glow"
+        style={{
+          height: "200px",
+          background: "radial-gradient(ellipse at center bottom, rgba(57, 242, 161, 0.2), transparent 75%)",
+          filter: "blur(25px)",
+          zIndex: 5,
+        }}
+      />
     </section>
   );
 }

@@ -7,32 +7,32 @@ import gsap from 'gsap';
 const slides = [
   {
     id: 1,
-    videoSrc: "/video/sequence-1.mp4",
+    videoSrc: "/video/1.mp4",
     text: "Phishing, info-stealers, social engineering... One way or another, some credentials will always leak."
   },
   {
     id: 2,
-    videoSrc: "/video/sequence-2.mp4",
+    videoSrc: "/video/6.mp4",
     text: "Once in possession, attackers map the target's internet-exposed assets and quickly test the stolen credentials across them."
   },
   {
     id: 3,
-    videoSrc: "/video/sequence-3.mp4",
+    videoSrc: "/video/3.mp4",
     text: "MokN deploys defensive phishing pages with valid certs, ultra realistic behavior, and domains crafted to blend into the attack surface."
   },
   {
     id: 4,
-    videoSrc: "/video/sequence-4.mp4",
+    videoSrc: "/video/2.mp4",
     text: "When attackers try to use stolen credentials on the Bait, they're met with a \"login failed\" response."
   },
   {
     id: 5,
-    videoSrc: "/video/sequence-5.mp4",
+    videoSrc: "/video/5.mp4",
     text: "Behind the scenes, MokN agents check the credentials in real time, and valid ones instantly trigger a critical alert."
   },
   {
     id: 6,
-    videoSrc: "/video/sequence-6.mp4",
+    videoSrc: "/video/4.mp4",
     text: "The password is reset within minutes, stopping the attack early and providing immediate, actionable intelligence on the attackers."
   }
 ];

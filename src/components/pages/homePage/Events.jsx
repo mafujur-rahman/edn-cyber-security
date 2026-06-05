@@ -41,7 +41,7 @@ export default function EventsSection() {
               loop
               className="w-full h-full "
             >
-              <source src="/video/Map-transcode.mp4" type="video/mp4" />
+              <source src="/video/globe-map.mp4" type="video/mp4" />
               {/* Fallback image if video fails */}
             </video>
           </div>

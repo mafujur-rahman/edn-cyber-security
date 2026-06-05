@@ -8,8 +8,8 @@ export default function LanternSection() {
   const [isLooping, setIsLooping] = useState(false);
   const videoRef = useRef(null);
 
-  const introVideo = "/video/lantern-intro.mp4";
-  const loopVideo = "/video/lantern-loop.mp4";
+  const introVideo = "/video/lantern-intro-edn.mp4";
+  const loopVideo = "/video/lantern-loop-edn.mp4";
 
   const handleVideoEnd = () => {
     setIsLooping(true);

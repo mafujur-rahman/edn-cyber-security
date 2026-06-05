@@ -22,3 +22,39 @@ body {
   color: var(--foreground);
   font-family: var(--font-urbanist), Arial, Helvetica, sans-serif;
 }
+
+
+/* Gradiant Button Animation */
+@keyframes rotateBorder {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.rotating-border {
+    position: absolute;
+    inset: -150%;
+    background: conic-gradient(from 0deg, transparent 60%, #00E5E5 75%, #99FF33 90%, transparent 100%);
+    transform-origin: center;
+    animation: rotateBorder 6s linear infinite;
+}
+
+.button_hover_light {
+    aspect-ratio: 1;
+    background: radial-gradient(circle, #00E5E5 0%, #99FF33 100%);
+    opacity: 0;
+    filter: blur(1.5rem);
+    border-radius: 99rem;
+    width: 90%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    will-change: transform;
+    transform-style: preserve-3d;
+    z-index: 1;
+}

@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useRef } from 'react';
 import { FaLinkedinIn, FaInstagram, FaFacebookF } from 'react-icons/fa';
 import gsap from 'gsap';
@@ -10,18 +11,26 @@ export default function Footer() {
     const currentYear = new Date().getFullYear();
     const footerRef = useRef(null);
     const glowRef = useRef(null);
+    const ambientGlowRef = useRef(null);
 
     useEffect(() => {
         const glowElement = glowRef.current;
+        const ambientElement = ambientGlowRef.current;
 
-        // Set initial hidden state
+        // Set initial hidden state - completely invisible with no color showing
         gsap.set(glowElement, {
             width: "0%",
-            height: "0px",
+            height: "0rem",
             opacity: 0,
+            scale: 0,
         });
 
-        // Animation for appearing as you scroll within the footer
+        gsap.set(ambientElement, {
+            opacity: 0,
+            scale: 0,
+        });
+
+        // Animation for expanding gradient as you scroll within the footer
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: footerRef.current,
@@ -33,17 +42,33 @@ export default function Footer() {
             }
         });
 
-        tl.fromTo(
-            glowElement,
+        // Animate main gradient - extra large height
+        tl.fromTo(glowElement,
             {
                 width: "0%",
-                height: "0px",
+                height: "0rem",
                 opacity: 0,
+                scale: 0,
             },
             {
-                width: "100%",
-                height: "280px",
+                width: "80%",
+                height: "60rem",
                 opacity: 1,
+                scale: 1,
+                ease: "power2.out",
+            },
+            0
+        );
+
+        // Animate ambient glow together with main gradient
+        tl.fromTo(ambientElement,
+            {
+                opacity: 0,
+                scale: 0,
+            },
+            {
+                opacity: 1,
+                scale: 1,
                 ease: "power2.out",
             },
             0
@@ -123,63 +148,43 @@ export default function Footer() {
                 </div>
             </div>
 
-            {/* Bottom Glowing Gradient Effect - Exactly matching the Ethical Den logo text direction */}
+            {/* Bottom Glowing Gradient Effect - Extra large height */}
             <div className="absolute bottom-0 left-0 w-full flex justify-center pointer-events-none overflow-hidden">
                 <div
                     ref={glowRef}
-                    className="relative w-full"
+                    className="quote_light"
                     style={{
-                        width: "0%",
-                        maxWidth: "1280px",
-                        height: "0px",
                         opacity: 0,
+                        width: "0%",
+                        height: "0rem",
+                        scale: 0,
+                        maxWidth: "80rem",
+                        position: "absolute",
+                        bottom: "-30rem",
+                        background: "radial-gradient(circle at center, rgba(0, 229, 229, 0.5) 0%, rgba(57, 242, 161, 0.4) 40%, rgba(153, 255, 51, 0.3) 70%, transparent 100%)",
+                        filter: "blur(6rem)",
+                        borderRadius: "50%",
+                        transformOrigin: "center center",
+                        transition: "none",
                     }}
-                >
-                    {/* Main gradient fading to transparent upwards with explicit Left-to-Right layout */}
-                    <div 
-                        className="absolute bottom-0 left-0 w-full"
-                        style={{
-                            height: "280px",
-                            background: `
-                                linear-gradient(to top, rgba(0,0,0,0) 0%, #000000 100%),
-                                linear-gradient(to right, rgba(0, 225, 225, 0.25) 0%, rgba(57, 242, 161, 0.2) 50%, rgba(153, 255, 51, 0.25) 100%)
-                            `,
-                            backgroundBlendMode: "screen",
-                            maskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 85%)",
-                            WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 85%)",
-                        }}
-                    >
-                        {/* Sharp logo-accurate edge line pinned at the very bottom edge */}
-                        <div 
-                            className="absolute bottom-0 left-0 w-full"
-                            style={{
-                                height: "2px",
-                                background: "linear-gradient(90deg, transparent 0%, #00E5E5 15%, #39F2A1 50%, #99FF33 85%, transparent 100%)",
-                            }}
-                        />
-                    </div>
-
-                    {/* Mid-ground ambient blur layer blending the colors */}
-                    <div 
-                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4"
-                        style={{
-                            height: "140px",
-                            background: "radial-gradient(ellipse at center bottom, rgba(57, 242, 161, 0.15), transparent 75%)",
-                            filter: "blur(25px)",
-                        }}
-                    />
-                    
-                    {/* Extra deep ambient atmospheric fill */}
-                    <div 
-                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full"
-                        style={{
-                            height: "220px",
-                            background: "radial-gradient(ellipse at center bottom, rgba(0, 229, 229, 0.08), transparent 80%)",
-                            filter: "blur(40px)",
-                        }}
-                    />
-                </div>
+                />
             </div>
+
+            {/* Soft centered ambient flow - Matching larger height */}
+            <div 
+                ref={ambientGlowRef}
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 pointer-events-none"
+                style={{
+                    opacity: 0,
+                    scale: 0,
+                    height: "280px",
+                    background: "radial-gradient(ellipse at center bottom, rgba(57, 242, 161, 0.2), transparent 75%)",
+                    filter: "blur(25px)",
+                    zIndex: 5,
+                    transformOrigin: "center bottom",
+                    transition: "none",
+                }}
+            />
         </footer>
     );
 }

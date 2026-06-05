@@ -14,15 +14,16 @@ if (typeof window !== 'undefined') {
 export default function CallToAction() {
   const sectionRef = useRef(null);
   const gradientRef = useRef(null);
+  const ellipseLightRef = useRef(null);
   const buttonRef = useRef(null);
   const hasAnimated = useRef(false);
 
   useEffect(() => {
-    // Left-to-right gradient reveal animation (play once)
+    // Left-to-right gradient reveal animation starting from card's left edge
     if (gradientRef.current && !hasAnimated.current) {
       gsap.set(gradientRef.current, {
-        scaleX: 0,
-        transformOrigin: "0% 50%"
+        x: "-100%",
+        opacity: 0
       });
 
       ScrollTrigger.create({
@@ -30,8 +31,10 @@ export default function CallToAction() {
         start: "top 55%",
         onEnter: () => {
           if (!hasAnimated.current) {
+            // Animate gradient from left to right
             gsap.to(gradientRef.current, {
-              scaleX: 1,
+              x: "0%",
+              opacity: 0.3,
               duration: 1.5,
               ease: "power3.inOut",
               onComplete: () => {
@@ -40,7 +43,28 @@ export default function CallToAction() {
             });
           }
         },
-        once: true // This ensures the animation only triggers once
+        once: true
+      });
+    }
+
+    // Ellipse light animation
+    if (ellipseLightRef.current) {
+      gsap.set(ellipseLightRef.current, {
+        opacity: 0,
+        left: "0%"
+      });
+
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: "top 55%",
+        onEnter: () => {
+          gsap.to(ellipseLightRef.current, {
+            opacity: 0.8,
+            duration: 1.5,
+            ease: "power3.inOut"
+          });
+        },
+        once: true
       });
     }
 
@@ -73,7 +97,7 @@ export default function CallToAction() {
 
   return (
     <section ref={sectionRef} className="relative w-full bg-black mt-40 px-6 overflow-hidden">
-      <div className="relative max-w-[1280px] mx-auto min-h-[160px] flex items-center justify-center p-1 rounded-sm border border-white/5 bg-[#080808]">
+      <div className="relative max-w-[1280px] mx-auto min-h-[160px] flex items-center justify-center p-1 rounded-sm border border-white/5 bg-[#080808] overflow-hidden">
         
         {/* Subtle grid pattern background */}
         <div className="absolute inset-0 opacity-[0.25] pointer-events-none"
@@ -82,14 +106,38 @@ export default function CallToAction() {
                backgroundSize: '8px 8px' 
              }} />
         
-        {/* Left-to-right reveal gradient */}
+        {/* Left-to-right reveal gradient - starts from inside card */}
         <div 
           ref={gradientRef}
-          className="absolute inset-0 z-0 opacity-25 pointer-events-none" 
+          className="absolute inset-0 z-0 pointer-events-none" 
           style={{
-            background: `linear-gradient(90deg, #00E5E5 0%, #39F2A1 50%, #99FF33 100%)`,
-            maskImage: 'radial-gradient(circle at 30% 50%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.2) 60%, rgba(0, 0, 0, 0) 100%)',
-            WebkitMaskImage: 'radial-gradient(circle at 30% 50%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.2) 60%, rgba(0, 0, 0, 0) 100%)'
+            width: '120%',
+            transform: 'translate(-50%, 0%)',
+            background: `linear-gradient(90deg, 
+              rgba(0,229,229,0.5) 0%, 
+              rgba(57,242,161,0.35) 40%,
+              rgba(153,255,51,0.2) 70%,
+              transparent 100%
+            )`,
+            opacity: 0,
+          }}
+        />
+
+        {/* CTA Ellipse Light Effect - exactly as specified */}
+        <div
+          ref={ellipseLightRef}
+          className="cta_ellipse_light pointer-events-none z-[5]"
+          style={{
+            backgroundColor: 'var(--primary)',
+            filter: 'blur(4rem)',
+            borderRadius: '50%',
+            width: '20%',
+            height: '80%',
+            position: 'absolute',
+            left: '0',
+            transform: 'translate(-50%)',
+            background: 'radial-gradient(circle, #00E5E5 0%, #39F2A1 50%, #99FF33 100%)',
+            opacity: 0,
           }}
         />
 
@@ -124,7 +172,6 @@ export default function CallToAction() {
               onClick={() => console.log('Schedule demo clicked')}
             >
               Schedule your demo
-              <ChevronRight className="w-4 h-4 ml-3 group-hover:scale-110 transition-all duration-300" strokeWidth={3}/>
             </GradientButton>
           </div>
 
